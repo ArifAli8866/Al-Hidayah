@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Al-Hidayah — Ramadan Companion</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- ══════════════════════════════════════════
+     LOADER
+══════════════════════════════════════════ -->
+  <div class="loader" id="loader">
+    <div class="loader-moon">🌙</div>
+    <div class="loader-title">AL-HIDAYAH</div>
+    <div class="loader-dots"><span></span><span></span><span></span></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+     NAVBAR
+══════════════════════════════════════════ -->
+  <nav class="navbar">
+    <div class="nav-brand" onclick="showSection('home')">
+      <div class="nav-brand-icon">🌙</div>
+      <div>
+        <div class="nav-brand-name">Al-Hidayah</div>
+        <div class="nav-brand-sub">Ramadan Companion</div>
+      </div>
+    </div>
+
+    <ul class="nav-links" id="navLinks">
+      <li><a onclick="showSection('home')" class="active" id="nav-home"> <span class="ni">🏠</span>Home</a></li>
+      <li><a onclick="showSection('prayer')" id="nav-prayer"> <span class="ni">🕌</span>Prayer</a></li>
+      <li><a onclick="showSection('quran')" id="nav-quran"> <span class="ni">📖</span>Qur'an</a></li>
+      <li><a onclick="showSection('duas')" id="nav-duas"> <span class="ni">🤲</span>Duas</a></li>
+      <li><a onclick="showSection('zakat')" id="nav-zakat"> <span class="ni">⚖️</span>Zakat</a></li>
+      <li><a onclick="showSection('recipes')" id="nav-recipes"> <span class="ni">🍽️</span>Recipes</a></li>
+      <li><a onclick="showSection('videos')" id="nav-videos"> <span class="ni">▶️</span>Videos</a></li>
+    </ul>
+
+    <div class="nav-right">
+      <div class="user-chip" id="userChip" onclick="openModal('profileModal')">
+        <div class="user-avatar">U</div>
+        <span class="chip-name">Guest</span>
+      </div>
+      <button class="theme-btn" onclick="toggleTheme()">
+        <span class="t-ico t-moon">🌙</span>
+        <span class="t-ico t-sun">☀️</span>
+      </button>
+      <button class="hamburger" onclick="toggleNav()">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ══════════════════════════════════════════
+     MAIN
+══════════════════════════════════════════ -->
+  <main>
+
+    <!-- ─────────────────────────────────────────
+     HOME SECTION
+───────────────────────────────────────── -->
+    <section id="home" class="section active"
+      style="padding:0;position:relative;overflow:hidden;min-height:100vh;display:flex;flex-direction:column;">
+      <div class="stars-bg" id="starsBg"></div>
+
+      <!-- Hero -->
+      <div
+        style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6rem 1.5rem 3rem;position:relative;z-index:1;">
+        <div
+          style="font-size:4.5rem;margin-bottom:1rem;animation:lm 4s ease-in-out infinite;filter:drop-shadow(0 0 30px rgba(20,189,189,0.5));">
+          🌙</div>
+        <div class="fw-arabic" style="font-size:2.5rem;color:var(--teal-light);line-height:1.5;margin-bottom:0.5rem;">
+          رَمَضَانُ الْمُبَارَكُ</div>
+        <h1
+          style="font-family:var(--font-display);font-size:clamp(2.5rem,6vw,5rem);font-weight:900;letter-spacing:5px;line-height:1.1;background:linear-gradient(135deg,var(--teal-light),var(--teal),var(--jade-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:0.4rem;">
+          AL-HIDAYAH</h1>
+        <div
+          style="font-family:var(--font-display);font-size:1rem;color:var(--text-2);letter-spacing:5px;text-transform:uppercase;margin-bottom:1.2rem;">
+          The Guidance • Ramadan Companion</div>
+        <p style="max-width:560px;color:var(--text-2);font-size:0.98rem;margin-bottom:2.5rem;line-height:1.8;">Your
+          complete spiritual companion for the blessed month of Ramadan. Track prayers, read Qur'an, recite Duas,
+          calculate Zakat, and discover Sehri &amp; Iftar recipes — all in one beautiful app.</p>
+
+        <!-- Countdown -->
+        <div style="display:flex;gap:1.2rem;margin-bottom:2.5rem;flex-wrap:wrap;justify-content:center;">
+          <div
+            style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.4rem;text-align:center;min-width:85px;">
+            <div
+              style="font-family:var(--font-display);font-size:2.4rem;font-weight:700;color:var(--teal-light);line-height:1;"
+              id="cdH">00</div>
+            <div
+              style="font-size:0.65rem;color:var(--text-3);letter-spacing:2px;text-transform:uppercase;margin-top:3px;">
+              Hours</div>
+          </div>
+          <div
+            style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.4rem;text-align:center;min-width:85px;">
+            <div
+              style="font-family:var(--font-display);font-size:2.4rem;font-weight:700;color:var(--teal-light);line-height:1;"
+              id="cdM">00</div>
+            <div
+              style="font-size:0.65rem;color:var(--text-3);letter-spacing:2px;text-transform:uppercase;margin-top:3px;">
+              Minutes</div>
+          </div>
+          <div
+            style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.4rem;text-align:center;min-width:85px;">
+            <div
+              style="font-family:var(--font-display);font-size:2.4rem;font-weight:700;color:var(--teal-light);line-height:1;"
+              id="cdS">00</div>
+            <div
+              style="font-size:0.65rem;color:var(--text-3);letter-spacing:2px;text-transform:uppercase;margin-top:3px;">
+              Seconds</div>
+          </div>
+          <div
+            style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.4rem;text-align:center;min-width:120px;">
+            <div
+              style="font-family:var(--font-display);font-size:1rem;font-weight:700;color:var(--teal-light);padding-top:8px;line-height:1.3;"
+              id="cdLabel">Until Iftar</div>
+            <div
+              style="font-size:0.65rem;color:var(--text-3);letter-spacing:2px;text-transform:uppercase;margin-top:3px;">
+              Event</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:0.9rem;flex-wrap:wrap;justify-content:center;">
+          <button class="btn btn-primary" onclick="showSection('prayer')">🕌 Prayer Times</button>
+          <button class="btn btn-outline" onclick="showSection('quran')">📖 Read Qur'an</button>
+          <button class="btn btn-ghost" onclick="showSection('duas')">🤲 Daily Duas</button>
+        </div>
+      </div>
+
+      <!-- Quick feature cards -->
+      <div
+        style="background:var(--bg-surface);border-top:1px solid var(--border);padding:2.5rem 1.5rem;position:relative;z-index:1;">
+        <div style="text-align:center;margin-bottom:1.5rem;">
+          <div
+            style="font-size:0.8rem;color:var(--text-3);letter-spacing:4px;text-transform:uppercase;margin-bottom:0.4rem;">
+            ✦ ✦ ✦</div>
+          <div class="fw-display" style="font-size:1.3rem;color:var(--teal-light);letter-spacing:2px;">EXPLORE FEATURES
+          </div>
+        </div>
+        <div
+          style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1rem;max-width:1100px;margin:0 auto;">
+          <div class="card card-glow" style="text-align:center;cursor:pointer;" onclick="showSection('prayer')">
+            <div style="font-size:2rem;margin-bottom:0.7rem;">🕌</div>
+            <div class="fw-display"
+              style="font-size:0.85rem;color:var(--teal-light);letter-spacing:1px;margin-bottom:0.2rem;">Prayer Times
+            </div>
+            <div style="font-size:0.74rem;color:var(--text-3);">Fajr to Isha + Sehri & Iftar</div>
+          </div>
+          <div class="card card-glow" style="text-align:center;cursor:pointer;" onclick="showSection('quran')">
+            <div style="font-size:2rem;margin-bottom:0.7rem;">📖</div>
+            <div class="fw-display"
+              style="font-size:0.85rem;color:var(--teal-light);letter-spacing:1px;margin-bottom:0.2rem;">Holy Qur'an
+            </div>
+            <div style="font-size:0.74rem;color:var(--text-3);">Read, listen & track progress</div>
+          </div>
+          <div class="card card-glow" style="text-align:center;cursor:pointer;" onclick="showSection('duas')">
+            <div style="font-size:2rem;margin-bottom:0.7rem;">🤲</div>
+            <div class="fw-display"
+              style="font-size:0.85rem;color:var(--teal-light);letter-spacing:1px;margin-bottom:0.2rem;">Duas</div>
+            <div style="font-size:0.74rem;color:var(--text-3);">Sehri, Iftar & daily dhikr</div>
+          </div>
+          <div class="card card-glow" style="text-align:center;cursor:pointer;" onclick="showSection('zakat')">
+            <div style="font-size:2rem;margin-bottom:0.7rem;">⚖️</div>
+            <div class="fw-display"
+              style="font-size:0.85rem;color:var(--teal-light);letter-spacing:1px;margin-bottom:0.2rem;">Zakat & Ushr
+            </div>
+            <div style="font-size:0.74rem;color:var(--text-3);">Calculate + AI assistant</div>
+          </div>
+          <div class="card card-glow" style="text-align:center;cursor:pointer;" onclick="showSection('recipes')">
+            <div style="font-size:2rem;margin-bottom:0.7rem;">🍽️</div>
+            <div class="fw-display"
+              style="font-size:0.85rem;color:var(--teal-light);letter-spacing:1px;margin-bottom:0.2rem;">Recipes</div>
+            <div style="font-size:0.74rem;color:var(--text-3);">Sehri & Iftar meal ideas</div>
+          </div>
+          <div class="card card-glow" style="text-align:center;cursor:pointer;" onclick="showSection('videos')">
+            <div style="font-size:2rem;margin-bottom:0.7rem;">▶️</div>
+            <div class="fw-display"
+              style="font-size:0.85rem;color:var(--teal-light);letter-spacing:1px;margin-bottom:0.2rem;">Videos</div>
+            <div style="font-size:0.74rem;color:var(--text-3);">Islamic lectures & recitations</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────
+     PRAYER TIMES
+───────────────────────────────────────── -->
+    <section id="prayer" class="section">
+      <div class="container">
+        <div class="page-header">
+          <div class="ar-title">أَوْقَاتُ الصَّلَاةِ</div>
+          <h1>Prayer Times</h1>
+          <div class="divider"></div>
+          <p>Accurate prayer times for your location with Sehri &amp; Iftar timings</p>
+        </div>
+
+        <!-- Hero card -->
+        <div
+          style="background:linear-gradient(135deg,var(--teal-dark),var(--jade-dark));border:1px solid rgba(20,189,189,0.3);border-radius:var(--radius);padding:1.8rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+          <div>
+            <div style="font-family:var(--font-display);font-size:1.6rem;color:white;font-weight:700;" id="pCityName">
+              Loading...</div>
+            <div style="font-size:0.85rem;color:rgba(255,255,255,0.65);margin-top:2px;" id="pDate">—</div>
+            <div class="fw-arabic" style="font-size:1.3rem;color:var(--teal-light);margin-top:4px;" id="hijriDate">١٤٤٦
+              هـ</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:0.68rem;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;">NEXT
+              PRAYER</div>
+            <div style="font-family:var(--font-display);font-size:1.4rem;color:white;font-weight:700;" id="nextPName">—
+            </div>
+            <div style="font-size:2.2rem;font-weight:700;color:var(--teal-light);font-variant-numeric:tabular-nums;"
+              id="nextPTime">--:--</div>
+            <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);margin-top:2px;" id="nextPIn">—</div>
+          </div>
+        </div>
+
+        <!-- Sehri / Iftar -->
+        <div class="g2 mb-3">
+          <div
+            style="background:linear-gradient(135deg,rgba(13,115,119,0.2),rgba(13,115,119,0.05));border:1px solid rgba(13,115,119,0.35);border-radius:var(--radius);padding:1.4rem;display:flex;align-items:center;gap:1.1rem;">
+            <div style="font-size:2.8rem;flex-shrink:0;">🌙</div>
+            <div>
+              <div
+                style="font-size:0.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--teal-light);margin-bottom:2px;">
+                SEHRI ENDS</div>
+              <div style="font-family:var(--font-display);font-size:1.9rem;font-weight:700;color:var(--text-1);"
+                id="sehriTime">--:--</div>
+              <div style="font-size:0.75rem;color:var(--text-3);">Fajr begins — stop eating</div>
+            </div>
+          </div>
+          <div
+            style="background:linear-gradient(135deg,rgba(232,160,32,0.2),rgba(232,160,32,0.05));border:1px solid rgba(232,160,32,0.35);border-radius:var(--radius);padding:1.4rem;display:flex;align-items:center;gap:1.1rem;">
+            <div style="font-size:2.8rem;flex-shrink:0;">🌅</div>
+            <div>
+              <div
+                style="font-size:0.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:2px;">
+                IFTAR TIME</div>
+              <div style="font-family:var(--font-display);font-size:1.9rem;font-weight:700;color:var(--text-1);"
+                id="iftarTime">--:--</div>
+              <div style="font-size:0.75rem;color:var(--text-3);">Maghrib — break your fast</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Prayer cards grid -->
+        <div
+          style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:1.5rem;"
+          id="prayersGrid">
+          <div class="prayer-card">
+            <div class="p-icon">⏳</div>
+            <div class="p-name">Loading...</div>
+          </div>
+        </div>
+
+        <!-- 30-day tracker -->
+        <div class="card card-teal">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="fw-display" style="color:var(--teal-light);font-size:0.9rem;letter-spacing:1px;">📅 RAMADAN
+              PRAYER TRACKER — 30 DAYS</h3>
+            <span class="badge badge-teal">Mark 5 prayers = full day ✅</span>
+          </div>
+          <p style="font-size:0.78rem;color:var(--text-3);margin-bottom:0.8rem;">Click each prayer card's "Mark Prayed"
+            to track. A day turns green when all 5 are prayed.</p>
+          <div class="tracker-grid" id="prayerTracker"></div>
+          <div style="display:flex;gap:1rem;margin-top:0.8rem;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:5px;font-size:0.74rem;color:var(--text-3);">
+              <div style="width:12px;height:12px;background:var(--teal);border-radius:2px;"></div>All 5 Prayed
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:0.74rem;color:var(--text-3);">
+              <div
+                style="width:12px;height:12px;background:rgba(13,115,119,0.3);border:1px solid var(--teal-light);border-radius:2px;">
+              </div>Today
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:0.74rem;color:var(--text-3);">
+              <div style="width:12px;height:12px;background:var(--border);border-radius:2px;"></div>Upcoming
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────
+     QURAN
+───────────────────────────────────────── -->
+    <section id="quran" class="section">
+      <div class="container">
+        <div class="page-header">
+          <div class="ar-title">الْقُرْآنُ الْكَرِيمُ</div>
+          <h1>Holy Qur'an</h1>
+          <div class="divider"></div>
+          <p>Browse Surahs with Arabic text, translations, audio recitation &amp; reading tracker</p>
+        </div>
+
+        <!-- Progress -->
+        <div class="card card-teal mb-3">
+          <div class="flex items-center justify-between mb-2" style="flex-wrap:wrap;gap:0.5rem;">
+            <h3 class="fw-display" style="color:var(--teal-light);font-size:0.9rem;letter-spacing:1px;">📊 RAMADAN
+              READING PROGRESS</h3>
+            <span class="badge badge-teal" id="qProgressBadge">0 / 30 Juz</span>
+          </div>
+          <div class="prog-bar mb-2">
+            <div class="prog-fill" id="qProgressBar" style="width:0%"></div>
+          </div>
+          <div class="tracker-grid" id="quranTracker"></div>
+          <p style="font-size:0.72rem;color:var(--text-3);margin-top:6px;">Click each box to mark Juz completed. Your
+            progress is saved to your account.</p>
+        </div>
+
+        <!-- Search -->
+        <div style="display:flex;gap:0.8rem;margin-bottom:1.5rem;flex-wrap:wrap;" id="surahListWrap">
+          <input class="input" type="text" id="surahSearch" placeholder="🔍  Search Surah by name or number..."
+            oninput="filterSurahs()" style="flex:1;min-width:200px;">
+          <button class="btn btn-outline" onclick="renderSurahList()">↺ Reset</button>
+        </div>
+
+        <!-- Surah list -->
+        <div id="surahListWrap">
+          <div
+            style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:0.8rem;max-height:520px;overflow-y:auto;padding-right:4px;"
+            id="surahList"></div>
+        </div>
+
+        <!-- Quran viewer -->
+        <div id="quranViewer" class="hidden">
+          <div id="audioPlayer"></div>
+          <div class="card mb-2">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.8rem;">
+              <div>
+                <div class="fw-display" style="font-size:1.2rem;color:var(--teal-light);font-weight:700;"
+                  id="viewSurahName"></div>
+                <div style="font-size:0.78rem;color:var(--text-3);" id="viewSurahMeta"></div>
+              </div>
+              <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                <button class="btn btn-outline btn-sm" onclick="prevSurah()">◀ Prev</button>
+                <button class="btn btn-outline btn-sm" onclick="nextSurah()">Next ▶</button>
+                <button class="btn btn-ghost btn-sm" onclick="closeViewer()">✖ Close</button>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div id="verseList"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────
+     DUAS
+───────────────────────────────────────── -->
+    <section id="duas" class="section" id="duasSection">
+      <div class="container">
+        <div class="page-header">
+          <div class="ar-title">أَدْعِيَةُ رَمَضَان</div>
+          <h1>Ramadan Duas</h1>
+          <div class="divider"></div>
+          <p>Essential supplications for Sehri, Iftar, prayers and every moment of Ramadan</p>
+        </div>
+        <div class="pill-row">
+          <button class="pill active" onclick="filterDuas('all',this)">🌟 All</button>
+          <button class="pill" onclick="filterDuas('sehri',this)">🌙 Sehri</button>
+          <button class="pill" onclick="filterDuas('iftar',this)">🌅 Iftar</button>
+          <button class="pill" onclick="filterDuas('morning',this)">☀️ Morning</button>
+          <button class="pill" onclick="filterDuas('evening',this)">🌆 Evening</button>
+          <button class="pill" onclick="filterDuas('quran',this)">📖 Qur'anic</button>
+          <button class="pill" onclick="filterDuas('forgiveness',this)">🤍 Forgiveness</button>
+          <button class="pill" onclick="filterDuas('taraweeh',this)">🕌 Taraweeh</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:1.3rem;" id="duasList"></div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────
+     ZAKAT
+───────────────────────────────────────── -->
+    <section id="zakat" class="section" id="zakatSection">
+      <div class="container">
+        <div class="page-header">
+          <div class="ar-title">الزَّكَاةُ وَالْعُشْرُ</div>
+          <h1>Zakat & Ushr Calculator</h1>
+          <div class="divider"></div>
+          <p>Calculate your obligatory charity with precision. All results saved to your account.</p>
+        </div>
+
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchZakatTab('zakat',this)">💰 Wealth</button>
+          <button class="tab-btn" onclick="switchZakatTab('gold',this)">🥇 Gold/Silver</button>
+          <button class="tab-btn" onclick="switchZakatTab('ushr',this)">🌾 Ushr</button>
+          <button class="tab-btn" onclick="switchZakatTab('fitrana',this)">🍚 Fitrana</button>
+        </div>
+
+        <!-- Wealth Zakat -->
+        <div class="tab-panel active" id="zakat-panel">
+          <div
+            style="background:rgba(13,115,119,0.07);border:1px solid var(--border-mid);border-radius:var(--radius);padding:1.1rem 1.4rem;margin-bottom:1.3rem;font-size:0.85rem;color:var(--text-2);line-height:1.7;">
+            <strong class="text-teal">📌 Nisab Threshold:</strong> Zakat becomes obligatory when net assets exceed
+            ~<strong>₨1,920,000</strong> (87.48g gold standard) and one lunar year has passed. <strong
+              class="text-teal">Rate: 2.5%</strong>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1rem;">
+            <div class="form-group"><label>💵 Cash & Bank Balances</label><input class="input" type="number" id="z-cash"
+                placeholder="0" oninput="calcZakat()"></div>
+            <div class="form-group"><label>📈 Investments & Shares</label><input class="input" type="number"
+                id="z-invest" placeholder="0" oninput="calcZakat()"></div>
+            <div class="form-group"><label>🏪 Business Goods</label><input class="input" type="number" id="z-biz"
+                placeholder="0" oninput="calcZakat()"></div>
+            <div class="form-group"><label>🏦 Receivable Loans</label><input class="input" type="number" id="z-loans"
+                placeholder="0" oninput="calcZakat()"></div>
+            <div class="form-group"><label>➖ Debts Payable</label><input class="input" type="number" id="z-debts"
+                placeholder="0" oninput="calcZakat()"></div>
+            <div class="form-group"><label>💱 Currency</label>
+              <select id="z-currency" onchange="calcZakat()">
+                <option value="PKR">🇵🇰 PKR (₨)</option>
+                <option value="USD">🇺🇸 USD ($)</option>
+                <option value="GBP">🇬🇧 GBP (£)</option>
+                <option value="SAR">🇸🇦 SAR (﷼)</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-primary mt-2" onclick="calcZakat()">⚖️ Calculate Zakat</button>
+          <div class="result-box hidden" id="zakat-result">
+            <div class="result-grid">
+              <div class="result-item">
+                <div class="r-label">Total Assets</div>
+                <div class="r-value" id="r-total">0</div>
+                <div class="r-unit">PKR</div>
+              </div>
+              <div class="result-item">
+                <div class="r-label">Net Zakatable</div>
+                <div class="r-value" id="r-net">0</div>
+                <div class="r-unit">PKR</div>
+              </div>
+              <div class="result-item" style="border-color:var(--teal);">
+                <div class="r-label">Zakat Due (2.5%)</div>
+                <div class="r-value text-teal" id="r-zakat">0</div>
+                <div class="r-unit">PKR</div>
+              </div>
+              <div class="result-item">
+                <div class="r-label">Nisab Status</div>
+                <div class="r-value" id="r-nisab">—</div>
+                <div class="r-unit">Gold Standard</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gold/Silver -->
+        <div class="tab-panel" id="gold-panel">
+          <div
+            style="background:rgba(13,115,119,0.07);border:1px solid var(--border-mid);border-radius:var(--radius);padding:1.1rem 1.4rem;margin-bottom:1.3rem;font-size:0.85rem;color:var(--text-2);line-height:1.7;">
+            <strong class="text-teal">Gold Nisab:</strong> 87.48g (7.5 Tola) | <strong class="text-teal">Silver
+              Nisab:</strong> 612.36g (52.5 Tola) | <strong class="text-teal">Rate: 2.5%</strong>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1rem;">
+            <div class="form-group"><label>🥇 Gold Weight (grams)</label><input class="input" type="number" id="g-gold"
+                placeholder="0" oninput="calcGold()"></div>
+            <div class="form-group"><label>💰 Gold Price/gram (PKR)</label><input class="input" type="number"
+                id="g-goldprice" value="22000" oninput="calcGold()"></div>
+            <div class="form-group"><label>🥈 Silver Weight (grams)</label><input class="input" type="number"
+                id="g-silver" placeholder="0" oninput="calcGold()"></div>
+            <div class="form-group"><label>💰 Silver Price/gram (PKR)</label><input class="input" type="number"
+                id="g-silverprice" value="270" oninput="calcGold()"></div>
+          </div>
+          <button class="btn btn-primary mt-2" onclick="calcGold()">⚖️ Calculate</button>
+          <div class="result-box hidden" id="gold-result">
+            <div class="result-grid">
+              <div class="result-item">
+                <div class="r-label">Gold Value</div>
+                <div class="r-value" id="r-gv">0</div>
+                <div class="r-unit">PKR</div>
+              </div>
+              <div class="result-item">
+                <div class="r-label">Silver Value</div>
+                <div class="r-value" id="r-sv">0</div>
+                <div class="r-unit">PKR</div>
+              </div>
+              <div class="result-item" style="border-color:var(--teal);">
+                <div class="r-label">Zakat Due</div>
+                <div class="r-value text-teal" id="r-gz">0</div>
+                <div class="r-unit">PKR</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ushr -->
+        <div class="tab-panel" id="ushr-panel">
+          <div
+            style="background:rgba(13,115,119,0.07);border:1px solid var(--border-mid);border-radius:var(--radius);padding:1.1rem 1.4rem;margin-bottom:1.3rem;font-size:0.85rem;color:var(--text-2);line-height:1.7;">
+            <strong class="text-teal">Rain-fed:</strong> 10% | <strong class="text-teal">Artificially
+              irrigated:</strong> 5% | Threshold: 653kg
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1rem;">
+            <div class="form-group"><label>🌾 Total Produce (kg)</label><input class="input" type="number"
+                id="u-produce" placeholder="0" oninput="calcUshr()"></div>
+            <div class="form-group"><label>💧 Irrigation Type</label>
+              <select id="u-irrigate" onchange="calcUshr()">
+                <option value="rain">Rain-fed (10%)</option>
+                <option value="artificial">Artificially Irrigated (5%)</option>
+              </select>
+            </div>
+            <div class="form-group"><label>💰 Market Price per kg (PKR)</label><input class="input" type="number"
+                id="u-price" placeholder="0" oninput="calcUshr()"></div>
+          </div>
+          <button class="btn btn-primary mt-2" onclick="calcUshr()">⚖️ Calculate Ushr</button>
+          <div class="result-box hidden" id="ushr-result">
+            <div class="result-grid">
+              <div class="result-item">
+                <div class="r-label">Total Value</div>
+                <div class="r-value" id="r-uv">0</div>
+                <div class="r-unit">PKR</div>
+              </div>
+              <div class="result-item" style="border-color:var(--teal);">
+                <div class="r-label">Ushr Due</div>
+                <div class="r-value text-teal" id="r-ushr">0</div>
+                <div class="r-unit">PKR</div>
+              </div>
+              <div class="result-item">
+                <div class="r-label">In Kind</div>
+                <div class="r-value" id="r-ukind">0</div>
+                <div class="r-unit">kg</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fitrana -->
+        <div class="tab-panel" id="fitrana-panel">
+          <div
+            style="background:rgba(13,115,119,0.07);border:1px solid var(--border-mid);border-radius:var(--radius);padding:1.1rem 1.4rem;margin-bottom:1.3rem;font-size:0.85rem;color:var(--text-2);line-height:1.7;">
+            <strong class="text-teal">Sadaqah al-Fitr:</strong> Obligatory per family member. Equivalent of ~1.75kg
+            wheat/flour. Must be paid before Eid prayer.
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1rem;">
+            <div class="form-group"><label>👨‍👩‍👧‍👦 Family Members</label><input class="input" type="number"
+                id="f-members" value="4" oninput="calcFitrana()"></div>
+            <div class="form-group"><label>🌾 Food Item</label>
+              <select id="f-food" onchange="calcFitrana()">
+                <option value="wheat">Wheat (₨280/kg)</option>
+                <option value="rice">Rice (₨420/kg)</option>
+                <option value="dates">Dates (₨800/kg)</option>
+              </select>
+            </div>
+            <div class="form-group"><label>💰 Custom Price/kg (optional)</label><input class="input" type="number"
+                id="f-custom" placeholder="Leave empty for default" oninput="calcFitrana()"></div>
+          </div>
+          <div class="result-box mt-2" id="fitrana-result">
+            <div class="result-grid">
+              <div class="result-item">
+                <div class="r-label">Per Person</div>
+                <div class="r-value text-teal" id="r-fp">₨ 490</div>
+                <div class="r-unit">PKR</div>
+              </div>
+              <div class="result-item" style="border-color:var(--teal);">
+                <div class="r-label">Total Fitrana</div>
+                <div class="r-value text-teal" id="r-ft">₨ 1,960</div>
+                <div class="r-unit">PKR</div>
+              </div>
+              <div class="result-item">
+                <div class="r-label">Total Weight</div>
+                <div class="r-value" id="r-fw">7.00</div>
+                <div class="r-unit">kg</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────
+     RECIPES
+───────────────────────────────────────── -->
+    <section id="recipes" class="section" id="recipesSection">
+      <div class="container">
+        <div class="page-header">
+          <div class="ar-title">وَصَفَاتُ السُّحُورِ وَالإِفْطَار</div>
+          <h1>Sehri & Iftar Recipes</h1>
+          <div class="divider"></div>
+          <p>Nourishing recipes to start your fast and break it with blessings</p>
+        </div>
+        <div class="pill-row">
+          <button class="pill active" onclick="filterRecipes('all',this)">🍽️ All</button>
+          <button class="pill" onclick="filterRecipes('sehri',this)">🌙 Sehri</button>
+          <button class="pill" onclick="filterRecipes('iftar',this)">🌅 Iftar</button>
+          <button class="pill" onclick="filterRecipes('drinks',this)">🥤 Drinks</button>
+          <button class="pill" onclick="filterRecipes('sweets',this)">🍮 Sweets</button>
+          <button class="pill" onclick="filterRecipes('snacks',this)">🥙 Snacks</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.2rem;"
+          id="recipesGrid"></div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────
+     VIDEOS
+───────────────────────────────────────── -->
+    <section id="videos" class="section" id="videosSection">
+      <div class="container">
+        <div class="page-header">
+          <div class="ar-title">الدُّرُوسُ الإِسْلَامِيَّة</div>
+          <h1>Islamic Videos</h1>
+          <div class="divider"></div>
+          <p>Educational Islamic content — lectures, recitations, duas and Taraweeh</p>
+        </div>
+        <div class="pill-row">
+          <button class="pill active" onclick="filterVideos('all',this)">📺 All</button>
+          <button class="pill" onclick="filterVideos('quran',this)">📖 Qur'an</button>
+          <button class="pill" onclick="filterVideos('lecture',this)">🎙️ Lectures</button>
+          <button class="pill" onclick="filterVideos('dua',this)">🤲 Duas</button>
+          <button class="pill" onclick="filterVideos('taraweeh',this)">🕌 Taraweeh</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.2rem;" id="videosGrid">
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ══════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════ -->
+
+  <!-- Login / Register Modal -->
+  <div class="modal-bg" id="loginModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
+      <div style="text-align:center;margin-bottom:1.5rem;">
+        <div style="font-size:2.5rem;margin-bottom:0.5rem;">🌙</div>
+        <div class="modal-title" style="border:none;margin:0;padding:0;">Welcome to Al-Hidayah</div>
+        <div style="font-size:0.8rem;color:var(--text-3);">Sign in to sync your prayers, Qur'an &amp; Zakat history
+        </div>
+      </div>
+      <!-- Tabs -->
+      <div class="tabs mb-2">
+        <button class="tab-btn active login-tab" data-tab="login" onclick="toggleLoginTab('login')">Sign In</button>
+        <button class="tab-btn login-tab" data-tab="register" onclick="toggleLoginTab('register')">Register</button>
+      </div>
+
+      <!-- Login Form -->
+      <div id="loginFormWrap">
+        <div class="form-group"><label>Email Address</label><input class="input" type="email" id="loginEmail"
+            placeholder="you@example.com"></div>
+        <div class="form-group"><label>Password</label><input class="input" type="password" id="loginPw"
+            placeholder="••••••••" onkeyup="if(event.key==='Enter')doLogin()"></div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:0.5rem;"
+          onclick="doLogin()">🔑 Sign In</button>
+        <div style="text-align:center;margin-top:1rem;font-size:0.8rem;color:var(--text-3);">
+          Demo: <strong>demo@alhidayah.app</strong> / <strong>demo1234</strong>
+        </div>
+      </div>
+
+      <!-- Register Form -->
+      <div id="registerFormWrap" class="hidden">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;">
+          <div class="form-group" style="grid-column:1/-1"><label>Full Name</label><input class="input" type="text"
+              id="regName" placeholder="Arif Ali"></div>
+          <div class="form-group" style="grid-column:1/-1"><label>Email Address</label><input class="input" type="email"
+              id="regEmail" placeholder="you@example.com"></div>
+          <div class="form-group" style="grid-column:1/-1"><label>Password</label><input class="input" type="password"
+              id="regPw" placeholder="Create a password"></div>
+          <div class="form-group" style="grid-column:1/-1">
+            <label>City</label>
+            <select class="input" id="regCity">
+              <option value="Karachi">Karachi</option>
+              <option value="Lahore">Lahore</option>
+              <option value="Islamabad">Islamabad</option>
+              <option value="Sukkur" selected>Sukkur</option>
+              <option value="Peshawar">Peshawar</option>
+              <option value="Quetta">Quetta</option>
+              <option value="Multan">Multan</option>
+              <option value="Hyderabad">Hyderabad</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Latitude</label><input class="input" type="number" id="regLat"
+              placeholder="24.8607" step="0.0001"></div>
+          <div class="form-group"><label>Longitude</label><input class="input" type="number" id="regLon"
+              placeholder="67.0011" step="0.0001"></div>
+        </div>
+        <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:0.8rem;"
+          onclick="getLocation()">📍 Auto-detect My Location</button>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="doRegister()">✨ Create
+          Account</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Modal -->
+  <div class="modal-bg" id="profileModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('profileModal')">✕</button>
+      <div class="modal-title">👤 My Profile</div>
+      <div style="margin-bottom:1rem;">
+        <div style="font-size:1rem;font-weight:600;color:var(--text-1);" id="pm-name">—</div>
+        <div style="font-size:0.82rem;color:var(--text-3);" id="pm-email">—</div>
+        <div style="font-size:0.82rem;color:var(--teal-light);margin-top:4px;" id="pm-city">—</div>
+      </div>
+      <hr style="border-color:var(--border);margin:1rem 0;">
+      <h4 class="fw-display" style="color:var(--teal-light);font-size:0.85rem;letter-spacing:1px;margin-bottom:0.8rem;">
+        🔔 NOTIFICATION SETTINGS</h4>
+      <div class="notif-row">
+        <div>
+          <div class="notif-label">Prayer Time Alerts</div>
+          <div class="notif-sub">10 min before each prayer</div>
+        </div><button class="toggle on" id="nt-prayer" onclick="this.classList.toggle('on')"></button>
+      </div>
+      <div class="notif-row">
+        <div>
+          <div class="notif-label">Sehri Reminder</div>
+          <div class="notif-sub">20 min before Fajr</div>
+        </div><button class="toggle on" id="nt-sehri" onclick="this.classList.toggle('on')"></button>
+      </div>
+      <div class="notif-row">
+        <div>
+          <div class="notif-label">Iftar Reminder</div>
+          <div class="notif-sub">5 min before Maghrib</div>
+        </div><button class="toggle on" id="nt-iftar" onclick="this.classList.toggle('on')"></button>
+      </div>
+      <hr style="border-color:var(--border);margin:1rem 0;">
+      <button class="btn btn-danger" style="width:100%;justify-content:center;" onclick="doLogout()">🚪 Sign
+        Out</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+     CHATBOT
+══════════════════════════════════════════ -->
+  <button class="chatbot-fab" onclick="toggleChat()" title="Mufti AI — Zakat Assistant">🤖</button>
+
+  <div class="chatbot-window" id="chatWindow">
+    <div class="chat-header">
+      <div class="chat-header-info">
+        <div class="avatar">🤖</div>
+        <div>
+          <div class="name">Mufti AI</div>
+          <div class="sub">Zakat & Islamic Finance</div>
+        </div>
+      </div>
+      <button onclick="toggleChat()"
+        style="background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;font-size:1.1rem;">✕</button>
+    </div>
+    <div class="chat-body" id="chatBody">
+      <div class="chat-msg bot">
+        السلام عليكم! I'm Mufti AI, your Zakat and Islamic finance assistant. Ask me anything about Zakat, Ushr,
+        Fitrana, or Sadaqah. I can help calculate your obligations based on your profile. 🌙
+      </div>
+    </div>
+    <div class="chat-footer">
+      <input type="text" id="chatInput" placeholder="Ask about Zakat, Nisab, Fitrana...">
+      <button class="chat-send" onclick="sendChatMessage()">➤</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+     TOAST
+══════════════════════════════════════════ -->
+  <div class="toast" id="toast">
+    <span id="toastIcon">✅</span>
+    <span class="toast-msg" id="toastMsg">Done!</span>
+  </div>
+
+  <!-- Profile modal auto-fill -->
+  <script>
+    document.getElementById('profileModal')?.addEventListener('transitionend', () => {
+      if (USER) {
+        document.getElementById('pm-name').textContent = USER.full_name || '—';
+        document.getElementById('pm-email').textContent = USER.email || '—';
+        document.getElementById('pm-city').textContent = '📍 ' + (USER.city || '—');
+      }
+    });
+  </script>
+
+  <script src="app.js"></script>
+
+  <!-- Surah list styles (inline for specificity) -->
+  <style>
+    .surah-item {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.9rem 1.1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .surah-item:hover {
+      border-color: var(--teal);
+      background: var(--bg-card-alt);
+    }
+
+    .sn {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+    }
+
+    .sd {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .se {
+      font-weight: 600;
+      font-size: 0.87rem;
+      color: var(--text-1);
+    }
+
+    .sa {
+      font-family: var(--font-arabic);
+      font-size: 1rem;
+      color: var(--teal-light);
+    }
+
+    .sm {
+      font-size: 0.68rem;
+      color: var(--text-3);
+      margin-top: 1px;
+    }
+
+    .si {
+      font-size: 1rem;
+      color: var(--text-3);
+    }
+  </style>
+</body>
+
+</html>
