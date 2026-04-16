@@ -8,7 +8,7 @@
 ---
 
 ## 📁 Project Structure
-
+```
 ```
 alhidayah/
 ├── templates/
@@ -24,7 +24,6 @@ alhidayah/
 │   └── schema.sql          ← PostgreSQL schema
 ├── requirements.txt
 └── README.md
-```
 
 ---
 
