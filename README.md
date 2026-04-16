@@ -64,7 +64,7 @@ psql -U postgres -d alhidayah_db -c "\dt"
 
 ## 🐍 Backend Setup
 
-```bash
+bash
 # Create virtual environment
 python -m venv venv
 source venv/bin/activate   # Linux/Mac
