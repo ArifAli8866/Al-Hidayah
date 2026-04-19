@@ -25,9 +25,15 @@ CLAUDE_KEY   = os.getenv("ANTHROPIC_API_KEY", "")
 
 # ─── DB HELPERS ─────────────────────────────────────────────
 def get_db():
-    return psycopg2.connect(DATABASE_URL,
-                            cursor_factory=psycopg2.extras.RealDictCursor)
-
+    # Clean the URL to remove any spaces or formatting issues
+    db_url = DATABASE_URL.strip()
+    # Remove sslmode from URL if present, handle it separately
+    conn = psycopg2.connect(
+        db_url,
+        cursor_factory=psycopg2.extras.RealDictCursor,
+        sslmode='require'
+    )
+    return conn
 def db_query(sql, params=(), fetchone=False, fetchall=False, commit=False):
     conn = get_db()
     cur  = conn.cursor()
