@@ -71,7 +71,11 @@ def make_token(user_id):
 # ─── SERVE FRONTEND ────────────────────────────────────
 @app.route('/')
 def index():
-    return send_from_directory('../templates', 'index.html')
+    return send_from_directory('.', 'index.html')
+
+@app.route('/login')
+def login_page():
+    return send_from_directory('.', 'index.html')
 
 @app.route('/login')
 def login_page():
