@@ -6,7 +6,7 @@
 'use strict';
 
 // ─── CONFIG ────────────────────────────────────────────────
-const API = 'http://localhost:5000/api';
+const API = '/api';
 let TOKEN = localStorage.getItem('ah_token');
 let USER  = JSON.parse(localStorage.getItem('ah_user') || 'null');
 
