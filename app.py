@@ -1,7 +1,5 @@
 # ============================================================
-#  AL-HIDAYAH — Flask Backend API
-#  Ramadan Companion Web Application
-#  Authors: Arif Ali (24P-0736) | Arslan Tariq (24P-0610)
+#  AL-HIDAYAH — Flask Backend (Vercel Compatible)
 # ============================================================
 
 from flask import Flask, request, jsonify, send_from_directory
@@ -15,26 +13,24 @@ import uuid
 import requests
 from datetime import datetime, timedelta
 from functools import wraps
-import anthropic  # pip install anthropic
 
 app = Flask(__name__, static_folder='.', template_folder='.')
 CORS(app, supports_credentials=True)
 
-# ─── CONFIG ────────────────────────────────────────────
+# ─── CONFIG ─────────────────────────────────────────────────
 DATABASE_URL = os.getenv("DATABASE_URL", "")
-JWT_SECRET  = os.getenv("JWT_SECRET",  "alhidayah_secret_2025")
-JWT_EXPIRY  = int(os.getenv("JWT_EXPIRY", 86400))   # 1 day
-CLAUDE_KEY  = os.getenv("ANTHROPIC_API_KEY", "")    # your Claude key
+JWT_SECRET   = os.getenv("JWT_SECRET",   "alhidayah2025")
+JWT_EXPIRY   = 86400
+CLAUDE_KEY   = os.getenv("ANTHROPIC_API_KEY", "")
 
-client_ai = anthropic.Anthropic(api_key=CLAUDE_KEY) if CLAUDE_KEY else None
-
-# ─── DB HELPERS ───────────────────────────────────────
+# ─── DB HELPERS ─────────────────────────────────────────────
 def get_db():
-    return psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
+    return psycopg2.connect(DATABASE_URL,
+                            cursor_factory=psycopg2.extras.RealDictCursor)
 
 def db_query(sql, params=(), fetchone=False, fetchall=False, commit=False):
     conn = get_db()
-    cur = conn.cursor()
+    cur  = conn.cursor()
     try:
         cur.execute(sql, params)
         result = None
@@ -42,10 +38,14 @@ def db_query(sql, params=(), fetchone=False, fetchall=False, commit=False):
         if fetchall:  result = cur.fetchall()
         if commit:    conn.commit()
         return result
+    except Exception as e:
+        conn.rollback()
+        raise e
     finally:
-        cur.close(); conn.close()
+        cur.close()
+        conn.close()
 
-# ─── AUTH DECORATOR ────────────────────────────────────
+# ─── AUTH DECORATOR ─────────────────────────────────────────
 def require_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -68,219 +68,232 @@ def make_token(user_id):
         "exp": datetime.utcnow() + timedelta(seconds=JWT_EXPIRY)
     }, JWT_SECRET, algorithm='HS256')
 
-# ─── SERVE FRONTEND ────────────────────────────────────
+# ─── SERVE FRONTEND ─────────────────────────────────────────
 @app.route('/')
 def index():
     return send_from_directory('.', 'index.html')
 
-@app.route('/login')
-def login_page():
-    return send_from_directory('.', 'index.html')
+@app.route('/style.css')
+def serve_css():
+    return send_from_directory('.', 'style.css')
 
-@app.route('/login')
-def login_page():
-    return send_from_directory('../templates', 'login.html')
+@app.route('/app.js')
+def serve_js():
+    return send_from_directory('.', 'app.js')
 
-# ═══════════════════════════════════════════════════════
-# AUTH ROUTES
-# ═══════════════════════════════════════════════════════
-
+# ─── AUTH ROUTES ────────────────────────────────────────────
 @app.route('/api/auth/register', methods=['POST'])
 def register():
-    d = request.json
-    required = ['full_name','email','password','city','latitude','longitude','timezone']
-    if not all(d.get(k) for k in required):
-        return jsonify({"error":"All fields required"}), 400
+    try:
+        d = request.json
+        if not d:
+            return jsonify({"error":"No data"}), 400
 
-    # Check duplicate
-    existing = db_query("SELECT id FROM users WHERE email=%s", (d['email'],), fetchone=True)
-    if existing:
-        return jsonify({"error":"Email already registered"}), 409
+        required = ['full_name','email','password','city']
+        if not all(d.get(k) for k in required):
+            return jsonify({"error":"All fields required"}), 400
 
-    pw_hash = bcrypt.hashpw(d['password'].encode(), bcrypt.gensalt()).decode()
-    user_id = str(uuid.uuid4())
+        existing = db_query(
+            "SELECT id FROM users WHERE email=%s",
+            (d['email'],), fetchone=True
+        )
+        if existing:
+            return jsonify({"error":"Email already registered"}), 409
 
-    db_query("""
-        INSERT INTO users (id, full_name, email, password_hash, city, country,
-                           latitude, longitude, timezone, calc_method)
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-    """, (user_id, d['full_name'], d['email'], pw_hash,
-          d['city'], d.get('country','Pakistan'),
-          d['latitude'], d['longitude'], d['timezone'],
-          d.get('calc_method', 1)), commit=True)
+        pw_hash  = bcrypt.hashpw(d['password'].encode(), bcrypt.gensalt()).decode()
+        user_id  = str(uuid.uuid4())
 
-    token = make_token(user_id)
-    user = db_query("SELECT id,full_name,email,city,latitude,longitude,timezone,theme FROM users WHERE id=%s",
-                    (user_id,), fetchone=True)
-    return jsonify({"token": token, "user": dict(user)}), 201
+        db_query("""
+            INSERT INTO users
+              (id, full_name, email, password_hash, city, country,
+               latitude, longitude, timezone, calc_method)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        """, (
+            user_id,
+            d['full_name'], d['email'], pw_hash,
+            d['city'], d.get('country','Pakistan'),
+            d.get('latitude', 24.86), d.get('longitude', 67.01),
+            d.get('timezone','Asia/Karachi'),
+            d.get('calc_method', 1)
+        ), commit=True)
+
+        token = make_token(user_id)
+        user  = db_query(
+            "SELECT id,full_name,email,city,latitude,longitude,timezone,theme FROM users WHERE id=%s",
+            (user_id,), fetchone=True
+        )
+        return jsonify({"token": token, "user": dict(user)}), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/api/auth/login', methods=['POST'])
 def login():
-    d = request.json
-    user = db_query("SELECT * FROM users WHERE email=%s", (d.get('email',''),), fetchone=True)
-    if not user or not bcrypt.checkpw(d.get('password','').encode(), user['password_hash'].encode()):
-        return jsonify({"error":"Invalid credentials"}), 401
+    try:
+        d    = request.json or {}
+        user = db_query(
+            "SELECT * FROM users WHERE email=%s",
+            (d.get('email',''),), fetchone=True
+        )
+        if not user or not bcrypt.checkpw(
+            d.get('password','').encode(),
+            user['password_hash'].encode()
+        ):
+            return jsonify({"error":"Invalid credentials"}), 401
 
-    db_query("UPDATE users SET last_login=NOW() WHERE id=%s", (user['id'],), commit=True)
-    token = make_token(user['id'])
-    safe_user = {k: user[k] for k in ['id','full_name','email','city','latitude','longitude','timezone','theme','notification_prayer','notification_sehri','notification_iftar']}
-    return jsonify({"token": token, "user": safe_user})
+        db_query(
+            "UPDATE users SET last_login=NOW() WHERE id=%s",
+            (user['id'],), commit=True
+        )
+        token = make_token(user['id'])
+        safe  = {k: user[k] for k in [
+            'id','full_name','email','city',
+            'latitude','longitude','timezone','theme'
+        ]}
+        return jsonify({"token": token, "user": safe})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/api/auth/me', methods=['GET'])
 @require_auth
 def get_me():
-    user = db_query("SELECT id,full_name,email,city,latitude,longitude,timezone,theme,calc_method FROM users WHERE id=%s",
-                    (request.user_id,), fetchone=True)
-    return jsonify(dict(user))
+    try:
+        user = db_query(
+            "SELECT id,full_name,email,city,latitude,longitude,timezone,theme,calc_method FROM users WHERE id=%s",
+            (request.user_id,), fetchone=True
+        )
+        return jsonify(dict(user))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-# ═══════════════════════════════════════════════════════
-# PRAYER ROUTES
-# ═══════════════════════════════════════════════════════
-
+# ─── PRAYER ROUTES ──────────────────────────────────────────
 @app.route('/api/prayer/times', methods=['GET'])
 @require_auth
 def get_prayer_times():
-    user = db_query("SELECT city, latitude, longitude, calc_method FROM users WHERE id=%s",
-                    (request.user_id,), fetchone=True)
-    date = request.args.get('date', datetime.now().strftime('%d-%m-%Y'))
-
-    # Call AlAdhan API
     try:
+        user = db_query(
+            "SELECT city, latitude, longitude, calc_method FROM users WHERE id=%s",
+            (request.user_id,), fetchone=True
+        )
+        date = request.args.get('date', datetime.now().strftime('%d-%m-%Y'))
+
         resp = requests.get(
             f"https://api.aladhan.com/v1/timings/{date}",
             params={
                 "latitude":  user['latitude'],
                 "longitude": user['longitude'],
                 "method":    user['calc_method']
-            }, timeout=10
+            }, timeout=8
         )
         data = resp.json()
         if data.get('code') == 200:
-            timings = data['data']['timings']
-            hijri   = data['data']['date']['hijri']
             return jsonify({
-                "timings": timings,
-                "hijri":   hijri,
+                "timings": data['data']['timings'],
+                "hijri":   data['data']['date']['hijri'],
                 "city":    user['city']
             })
-    except Exception as e:
+    except Exception:
         pass
 
-    # Fallback
     return jsonify({
-        "timings": {"Fajr":"05:02","Sunrise":"06:22","Dhuhr":"12:23","Asr":"15:52","Maghrib":"18:25","Isha":"19:49"},
-        "hijri":   {"day":"14","month":{"en":"Ramadan"},"year":"1446"},
-        "city":    user['city']
+        "timings": {
+            "Fajr":"05:02","Sunrise":"06:20",
+            "Dhuhr":"12:23","Asr":"15:52",
+            "Maghrib":"18:25","Isha":"19:49"
+        },
+        "hijri": {"day":"14","month":{"en":"Ramadan"},"year":"1446"},
+        "city":  "Default"
     })
 
 
 @app.route('/api/prayer/log', methods=['POST'])
 @require_auth
 def log_prayer():
-    d = request.json
-    db_query("""
-        INSERT INTO prayer_logs (user_id, prayer_name, prayer_date, prayed, prayed_at, is_qaza, notes)
-        VALUES (%s,%s,%s,%s,NOW(),%s,%s)
-        ON CONFLICT (user_id, prayer_name, prayer_date)
-        DO UPDATE SET prayed=EXCLUDED.prayed, prayed_at=EXCLUDED.prayed_at,
-                      is_qaza=EXCLUDED.is_qaza, notes=EXCLUDED.notes
-    """, (request.user_id, d['prayer_name'], d['prayer_date'],
-          d.get('prayed', True), d.get('is_qaza', False), d.get('notes','')), commit=True)
-    return jsonify({"success": True})
+    try:
+        d = request.json
+        db_query("""
+            INSERT INTO prayer_logs
+              (user_id, prayer_name, prayer_date, prayed, prayed_at, is_qaza, notes)
+            VALUES (%s,%s,%s,%s,NOW(),%s,%s)
+            ON CONFLICT (user_id, prayer_name, prayer_date)
+            DO UPDATE SET prayed=EXCLUDED.prayed,
+                          prayed_at=EXCLUDED.prayed_at,
+                          is_qaza=EXCLUDED.is_qaza
+        """, (
+            request.user_id,
+            d['prayer_name'], d['prayer_date'],
+            d.get('prayed', True),
+            d.get('is_qaza', False),
+            d.get('notes','')
+        ), commit=True)
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/api/prayer/log', methods=['GET'])
 @require_auth
 def get_prayer_log():
-    month = request.args.get('month', datetime.now().strftime('%Y-%m'))
-    logs = db_query("""
-        SELECT prayer_name, prayer_date, prayed, prayed_at, is_qaza
-        FROM prayer_logs
-        WHERE user_id=%s AND TO_CHAR(prayer_date,'YYYY-MM')=%s
-        ORDER BY prayer_date, prayer_name
-    """, (request.user_id, month), fetchall=True)
-    return jsonify([dict(l) for l in logs])
+    try:
+        month = request.args.get('month', datetime.now().strftime('%Y-%m'))
+        logs  = db_query("""
+            SELECT prayer_name, prayer_date, prayed, prayed_at, is_qaza
+            FROM prayer_logs
+            WHERE user_id=%s AND TO_CHAR(prayer_date,'YYYY-MM')=%s
+            ORDER BY prayer_date, prayer_name
+        """, (request.user_id, month), fetchall=True)
+        return jsonify([dict(l) for l in (logs or [])])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-
-@app.route('/api/prayer/stats', methods=['GET'])
-@require_auth
-def prayer_stats():
-    stats = db_query(
-        "SELECT total_prayed, total_scheduled, completion_pct, qaza_count FROM v_prayer_stats WHERE user_id=%s",
-        (request.user_id,), fetchone=True
-    )
-    return jsonify(dict(stats) if stats else {"total_prayed":0,"total_scheduled":0,"completion_pct":0,"qaza_count":0})
-
-# ═══════════════════════════════════════════════════════
-# FASTING ROUTES
-# ═══════════════════════════════════════════════════════
-
-@app.route('/api/fasting/log', methods=['POST'])
-@require_auth
-def log_fasting():
-    d = request.json
-    db_query("""
-        INSERT INTO fasting_log (user_id, fast_date, ramadan_day, fasted, sehri_eaten, iftar_time, notes)
-        VALUES (%s,%s,%s,%s,%s,%s,%s)
-        ON CONFLICT (user_id, fast_date)
-        DO UPDATE SET fasted=EXCLUDED.fasted, sehri_eaten=EXCLUDED.sehri_eaten,
-                      notes=EXCLUDED.notes
-    """, (request.user_id, d['fast_date'], d.get('ramadan_day',1),
-          d.get('fasted',True), d.get('sehri_eaten',True),
-          d.get('iftar_time'), d.get('notes','')), commit=True)
-    return jsonify({"success": True})
-
-
-@app.route('/api/fasting/log', methods=['GET'])
-@require_auth
-def get_fasting_log():
-    logs = db_query("""
-        SELECT fast_date, ramadan_day, fasted, sehri_eaten, notes
-        FROM fasting_log WHERE user_id=%s ORDER BY fast_date
-    """, (request.user_id,), fetchall=True)
-    return jsonify([dict(l) for l in logs])
-
-# ═══════════════════════════════════════════════════════
-# QURAN ROUTES
-# ═══════════════════════════════════════════════════════
-
+# ─── QURAN ROUTES ───────────────────────────────────────────
 @app.route('/api/quran/progress', methods=['GET'])
 @require_auth
 def get_quran_progress():
-    rows = db_query("""
-        SELECT surah_number, last_ayah, is_completed, last_read_at, read_count
-        FROM quran_progress WHERE user_id=%s ORDER BY surah_number
-    """, (request.user_id,), fetchall=True)
-    return jsonify([dict(r) for r in rows])
+    try:
+        rows = db_query("""
+            SELECT surah_number, last_ayah, is_completed, last_read_at
+            FROM quran_progress WHERE user_id=%s ORDER BY surah_number
+        """, (request.user_id,), fetchall=True)
+        return jsonify([dict(r) for r in (rows or [])])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/api/quran/progress', methods=['POST'])
 @require_auth
 def update_quran_progress():
-    d = request.json
-    db_query("""
-        INSERT INTO quran_progress (user_id, surah_number, last_ayah, total_ayahs, is_completed, last_read_at)
-        VALUES (%s,%s,%s,%s,%s,NOW())
-        ON CONFLICT (user_id, surah_number)
-        DO UPDATE SET last_ayah=EXCLUDED.last_ayah,
-                      is_completed=EXCLUDED.is_completed,
-                      last_read_at=NOW(),
-                      read_count=quran_progress.read_count+1
-    """, (request.user_id, d['surah_number'], d['last_ayah'],
-          d.get('total_ayahs'), d.get('is_completed', False)), commit=True)
-    return jsonify({"success": True})
+    try:
+        d = request.json
+        db_query("""
+            INSERT INTO quran_progress
+              (user_id, surah_number, last_ayah, total_ayahs, is_completed, last_read_at)
+            VALUES (%s,%s,%s,%s,%s,NOW())
+            ON CONFLICT (user_id, surah_number)
+            DO UPDATE SET last_ayah=EXCLUDED.last_ayah,
+                          is_completed=EXCLUDED.is_completed,
+                          last_read_at=NOW(),
+                          read_count=quran_progress.read_count+1
+        """, (
+            request.user_id,
+            d['surah_number'], d['last_ayah'],
+            d.get('total_ayahs'), d.get('is_completed', False)
+        ), commit=True)
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/api/quran/surah/<int:surah_num>', methods=['GET'])
 @require_auth
 def get_surah(surah_num):
-    """Fetch from Al-Quran Cloud API"""
     try:
         resp = requests.get(
             f"https://api.alquran.cloud/v1/surah/{surah_num}/editions/quran-uthmani,en.asad",
-            timeout=10
+            timeout=8
         )
         data = resp.json()
         if data.get('code') == 200:
@@ -289,213 +302,185 @@ def get_surah(surah_num):
         pass
     return jsonify({"error": "Could not fetch surah"}), 503
 
-# ═══════════════════════════════════════════════════════
-# ZAKAT ROUTES
-# ═══════════════════════════════════════════════════════
-
+# ─── ZAKAT ROUTES ───────────────────────────────────────────
 @app.route('/api/zakat/save', methods=['POST'])
 @require_auth
 def save_zakat():
-    d = request.json
-    db_query("""
-        INSERT INTO zakat_records
-            (user_id, calc_type, cash_amount, investments, business_goods,
-             receivables, debts, gold_grams, silver_grams, gold_price_per_gram,
-             silver_price_per_gram, produce_kg, irrigation_type, price_per_kg,
-             family_members, food_type, currency, total_assets, net_zakatable,
-             zakat_amount, nisab_met, notes)
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-    """, (
-        request.user_id, d.get('calc_type','wealth'),
-        d.get('cash',0), d.get('investments',0), d.get('business_goods',0),
-        d.get('receivables',0), d.get('debts',0),
-        d.get('gold_grams',0), d.get('silver_grams',0),
-        d.get('gold_price',0), d.get('silver_price',0),
-        d.get('produce_kg',0), d.get('irrigation_type'),
-        d.get('price_per_kg',0), d.get('family_members',1),
-        d.get('food_type'), d.get('currency','PKR'),
-        d.get('total_assets',0), d.get('net_zakatable',0),
-        d.get('zakat_amount',0), d.get('nisab_met',False),
-        d.get('notes','')
-    ), commit=True)
-    return jsonify({"success": True})
+    try:
+        d = request.json
+        db_query("""
+            INSERT INTO zakat_records
+              (user_id, calc_type, cash_amount, investments, business_goods,
+               receivables, debts, gold_grams, silver_grams,
+               gold_price_per_gram, silver_price_per_gram,
+               produce_kg, irrigation_type, price_per_kg,
+               family_members, food_type, currency,
+               total_assets, net_zakatable, zakat_amount, nisab_met, notes)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        """, (
+            request.user_id, d.get('calc_type','wealth'),
+            d.get('cash',0), d.get('investments',0),
+            d.get('business_goods',0), d.get('receivables',0),
+            d.get('debts',0), d.get('gold_grams',0),
+            d.get('silver_grams',0), d.get('gold_price',0),
+            d.get('silver_price',0), d.get('produce_kg',0),
+            d.get('irrigation_type'), d.get('price_per_kg',0),
+            d.get('family_members',1), d.get('food_type'),
+            d.get('currency','PKR'), d.get('total_assets',0),
+            d.get('net_zakatable',0), d.get('zakat_amount',0),
+            d.get('nisab_met',False), d.get('notes','')
+        ), commit=True)
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/api/zakat/history', methods=['GET'])
 @require_auth
 def zakat_history():
-    rows = db_query("""
-        SELECT calc_type, zakat_amount, currency, nisab_met, calculated_at
-        FROM zakat_records WHERE user_id=%s ORDER BY calculated_at DESC LIMIT 20
-    """, (request.user_id,), fetchall=True)
-    return jsonify([dict(r) for r in rows])
+    try:
+        rows = db_query("""
+            SELECT calc_type, zakat_amount, currency, nisab_met, calculated_at
+            FROM zakat_records
+            WHERE user_id=%s
+            ORDER BY calculated_at DESC LIMIT 20
+        """, (request.user_id,), fetchall=True)
+        return jsonify([dict(r) for r in (rows or [])])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-# ═══════════════════════════════════════════════════════
-# ZAKAT CHATBOT (Claude AI)
-# ═══════════════════════════════════════════════════════
-
+# ─── CHATBOT ────────────────────────────────────────────────
 @app.route('/api/chatbot/message', methods=['POST'])
 @require_auth
 def chatbot_message():
-    d = request.json
-    user_message = d.get('message','')
-    session_id   = d.get('session_id')
-
-    # Get user profile for context
-    user = db_query(
-        "SELECT full_name, city FROM users WHERE id=%s", (request.user_id,), fetchone=True
-    )
-    zakat_history = db_query("""
-        SELECT calc_type, total_assets, zakat_amount, currency, calculated_at
-        FROM zakat_records WHERE user_id=%s ORDER BY calculated_at DESC LIMIT 3
-    """, (request.user_id,), fetchall=True)
-
-    history_text = ""
-    if zakat_history:
-        history_text = "\n".join([
-            f"- {r['calc_type']}: {r['currency']} {r['zakat_amount']} (on assets {r['total_assets']})"
-            for r in zakat_history
-        ])
-
-    system_prompt = f"""You are Mufti AI, an Islamic finance expert embedded in Al-Hidayah, a Ramadan Companion app.
-You specialize in Zakat, Ushr, Fitrana, and Islamic charitable giving according to Hanafi fiqh (used in Pakistan).
-
-User Profile:
-- Name: {user['full_name'] if user else 'User'}
-- City: {user['city'] if user else 'Pakistan'}
-- Recent Zakat Calculations: {history_text or 'None yet'}
-
-Your role:
-1. Answer questions about Zakat calculations, Nisab, and Islamic finance
-2. Help the user understand their obligation based on their asset details
-3. Reference their previous calculations when relevant
-4. Be concise, friendly, and Islamic in tone
-5. Always end responses with relevant Quranic references or Hadith when appropriate
-6. Use PKR as default currency for Pakistani users
-7. Current Nisab: ~PKR 1,920,000 (gold) or ~PKR 215,000 (silver)
-
-Important rules:
-- Never give fatwas beyond your scope — recommend consulting a local scholar for complex cases
-- Keep responses under 200 words unless the question is complex
-- Use bullet points for clarity"""
-
-    # Get previous messages in session
-    messages = []
-    if session_id:
-        prev = db_query("""
-            SELECT role, content FROM chatbot_messages cm
-            JOIN chatbot_sessions cs ON cs.session_id = cm.session_id
-            WHERE cs.session_id=%s ORDER BY cm.sent_at
-        """, (session_id,), fetchall=True)
-        messages = [{"role": r['role'], "content": r['content']} for r in (prev or [])]
-
-    messages.append({"role": "user", "content": user_message})
-
-    # Call Claude
     try:
-        if client_ai:
-            response = client_ai.messages.create(
-                model="claude-sonnet-4-20250514",
-                max_tokens=512,
-                system=system_prompt,
-                messages=messages
+        d            = request.json or {}
+        user_message = d.get('message','')
+        session_id   = d.get('session_id')
+
+        user = db_query(
+            "SELECT full_name, city FROM users WHERE id=%s",
+            (request.user_id,), fetchone=True
+        )
+
+        system_prompt = f"""You are Mufti AI, an Islamic finance expert in Al-Hidayah Ramadan app.
+You specialize in Zakat, Ushr, Fitrana according to Hanafi fiqh (Pakistan).
+User: {user['full_name'] if user else 'User'} from {user['city'] if user else 'Pakistan'}.
+Current Nisab: ~PKR 1,920,000 (gold) or ~PKR 215,000 (silver). Rate: 2.5%.
+Be concise, friendly, and end with a Quranic reference when relevant.
+Keep responses under 150 words."""
+
+        reply = "I'm sorry, the AI service is currently unavailable. Basic rule: Zakat = 2.5% on net assets above Nisab (~₨1.92M gold standard)."
+
+        if CLAUDE_KEY and CLAUDE_KEY != "none":
+            try:
+                import anthropic
+                client = anthropic.Anthropic(api_key=CLAUDE_KEY)
+                response = client.messages.create(
+                    model="claude-haiku-4-5-20251001",
+                    max_tokens=300,
+                    system=system_prompt,
+                    messages=[{"role":"user","content":user_message}]
+                )
+                reply = response.content[0].text
+            except Exception as ai_err:
+                reply = f"AI unavailable. Basic answer: Zakat is 2.5% on zakatable assets above Nisab. Details: {str(ai_err)[:80]}"
+
+        # Save session
+        if not session_id:
+            session_id = str(uuid.uuid4())
+            try:
+                db_query(
+                    "INSERT INTO chatbot_sessions (user_id, session_id) VALUES (%s,%s)",
+                    (request.user_id, session_id), commit=True
+                )
+            except Exception:
+                pass
+
+        try:
+            db_query(
+                "INSERT INTO chatbot_messages (session_id, role, content) VALUES (%s,'user',%s)",
+                (session_id, user_message), commit=True
             )
-            reply = response.content[0].text
-        else:
-            reply = "🔑 Please configure ANTHROPIC_API_KEY in your .env file to enable the AI assistant. For now: Zakat is 2.5% on net assets exceeding Nisab (~₨1.92M for gold standard)."
+            db_query(
+                "INSERT INTO chatbot_messages (session_id, role, content) VALUES (%s,'assistant',%s)",
+                (session_id, reply), commit=True
+            )
+        except Exception:
+            pass
+
+        return jsonify({"reply": reply, "session_id": session_id})
+
     except Exception as e:
-        reply = f"AI service temporarily unavailable. Basic rule: Zakat = 2.5% × net_assets if net_assets ≥ Nisab. Error: {str(e)[:100]}"
+        return jsonify({"reply": f"Error: {str(e)}", "session_id": None}), 200
 
-    # Save to DB
-    if not session_id:
-        session_id = str(uuid.uuid4())
-        db_query("INSERT INTO chatbot_sessions (user_id, session_id) VALUES (%s,%s)",
-                 (request.user_id, session_id), commit=True)
 
-    db_query("INSERT INTO chatbot_messages (session_id, role, content) VALUES (%s,'user',%s)",
-             (session_id, user_message), commit=True)
-    db_query("INSERT INTO chatbot_messages (session_id, role, content) VALUES (%s,'assistant',%s)",
-             (session_id, reply), commit=True)
-    db_query("UPDATE chatbot_sessions SET last_message_at=NOW() WHERE session_id=%s",
-             (session_id,), commit=True)
-
-    return jsonify({"reply": reply, "session_id": session_id})
-
-# ═══════════════════════════════════════════════════════
-# NOTIFICATION ROUTES
-# ═══════════════════════════════════════════════════════
-
+# ─── NOTIFICATIONS ───────────────────────────────────────────
 @app.route('/api/notifications', methods=['GET'])
 @require_auth
 def get_notifications():
-    rows = db_query("""
-        SELECT prayer_name, enabled, minutes_before
-        FROM notification_schedule WHERE user_id=%s ORDER BY prayer_name
-    """, (request.user_id,), fetchall=True)
-    return jsonify([dict(r) for r in rows])
+    try:
+        rows = db_query("""
+            SELECT prayer_name, enabled, minutes_before
+            FROM notification_schedule WHERE user_id=%s
+        """, (request.user_id,), fetchall=True)
+        return jsonify([dict(r) for r in (rows or [])])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/api/notifications', methods=['PUT'])
 @require_auth
 def update_notifications():
-    items = request.json  # list of {prayer_name, enabled, minutes_before}
-    for item in items:
-        db_query("""
-            UPDATE notification_schedule
-            SET enabled=%s, minutes_before=%s
-            WHERE user_id=%s AND prayer_name=%s
-        """, (item['enabled'], item.get('minutes_before',10),
-              request.user_id, item['prayer_name']), commit=True)
-    return jsonify({"success": True})
+    try:
+        items = request.json or []
+        for item in items:
+            db_query("""
+                UPDATE notification_schedule
+                SET enabled=%s, minutes_before=%s
+                WHERE user_id=%s AND prayer_name=%s
+            """, (
+                item['enabled'], item.get('minutes_before',10),
+                request.user_id, item['prayer_name']
+            ), commit=True)
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-# ═══════════════════════════════════════════════════════
-# USER SETTINGS
-# ═══════════════════════════════════════════════════════
 
 @app.route('/api/user/settings', methods=['PUT'])
 @require_auth
 def update_settings():
-    d = request.json
-    db_query("""
-        UPDATE users SET theme=%s, city=%s, latitude=%s, longitude=%s,
-                         timezone=%s, calc_method=%s, language=%s
-        WHERE id=%s
-    """, (d.get('theme','dark'), d.get('city'), d.get('latitude'),
-          d.get('longitude'), d.get('timezone'), d.get('calc_method',1),
-          d.get('language','en'), request.user_id), commit=True)
-    return jsonify({"success": True})
+    try:
+        d = request.json or {}
+        db_query("""
+            UPDATE users SET theme=%s, city=%s,
+              latitude=%s, longitude=%s,
+              timezone=%s, calc_method=%s
+            WHERE id=%s
+        """, (
+            d.get('theme','dark'), d.get('city','Karachi'),
+            d.get('latitude', 24.86), d.get('longitude', 67.01),
+            d.get('timezone','Asia/Karachi'),
+            d.get('calc_method',1),
+            request.user_id
+        ), commit=True)
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
-@app.route('/api/dua/favorite', methods=['POST'])
-@require_auth
-def toggle_dua_favorite():
-    d = request.json
-    existing = db_query("SELECT id FROM dua_favorites WHERE user_id=%s AND dua_key=%s",
-                        (request.user_id, d['dua_key']), fetchone=True)
-    if existing:
-        db_query("DELETE FROM dua_favorites WHERE user_id=%s AND dua_key=%s",
-                 (request.user_id, d['dua_key']), commit=True)
-        return jsonify({"favorited": False})
-    else:
-        db_query("INSERT INTO dua_favorites (user_id, dua_key, dua_title) VALUES (%s,%s,%s)",
-                 (request.user_id, d['dua_key'], d.get('title','')), commit=True)
-        return jsonify({"favorited": True})
+# ─── HEALTH CHECK ────────────────────────────────────────────
+@app.route('/api/health', methods=['GET'])
+def health():
+    return jsonify({"status": "ok", "app": "Al-Hidayah"})
 
 
-@app.route('/api/recipe/bookmark', methods=['POST'])
-@require_auth
-def toggle_recipe_bookmark():
-    d = request.json
-    existing = db_query("SELECT id FROM recipe_bookmarks WHERE user_id=%s AND recipe_name=%s",
-                        (request.user_id, d['recipe_name']), fetchone=True)
-    if existing:
-        db_query("DELETE FROM recipe_bookmarks WHERE user_id=%s AND recipe_name=%s",
-                 (request.user_id, d['recipe_name']), commit=True)
-        return jsonify({"bookmarked": False})
-    else:
-        db_query("INSERT INTO recipe_bookmarks (user_id, recipe_name, recipe_category) VALUES (%s,%s,%s)",
-                 (request.user_id, d['recipe_name'], d.get('category','')), commit=True)
-        return jsonify({"bookmarked": True})
+# ─── ERROR HANDLERS ──────────────────────────────────────────
+@app.errorhandler(404)
+def not_found(e):
+    return send_from_directory('.', 'index.html')
 
-# This line must exist for Vercel
-app = app
+@app.errorhandler(500)
+def server_error(e):
+    return jsonify({"error": str(e)}), 500
