@@ -17,17 +17,11 @@ from datetime import datetime, timedelta
 from functools import wraps
 import anthropic  # pip install anthropic
 
-app = Flask(__name__, static_folder='../static', template_folder='../templates')
+app = Flask(__name__, static_folder='.', template_folder='.')
 CORS(app, supports_credentials=True)
 
 # ─── CONFIG ────────────────────────────────────────────
-DB_CONFIG = {
-    "dbname":   os.getenv("DB_NAME",   "alhidayah_db"),
-    "user":     os.getenv("DB_USER",   "postgres"),
-    "password": os.getenv("DB_PASS",   "your_password"),
-    "host":     os.getenv("DB_HOST",   "localhost"),
-    "port":     os.getenv("DB_PORT",   "5432"),
-}
+DATABASE_URL = os.getenv("DATABASE_URL", "")
 JWT_SECRET  = os.getenv("JWT_SECRET",  "alhidayah_secret_2025")
 JWT_EXPIRY  = int(os.getenv("JWT_EXPIRY", 86400))   # 1 day
 CLAUDE_KEY  = os.getenv("ANTHROPIC_API_KEY", "")    # your Claude key
@@ -36,7 +30,7 @@ client_ai = anthropic.Anthropic(api_key=CLAUDE_KEY) if CLAUDE_KEY else None
 
 # ─── DB HELPERS ───────────────────────────────────────
 def get_db():
-    return psycopg2.connect(**DB_CONFIG, cursor_factory=psycopg2.extras.RealDictCursor)
+    return psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
 
 def db_query(sql, params=(), fetchone=False, fetchall=False, commit=False):
     conn = get_db()
