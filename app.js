@@ -980,3 +980,12 @@ function toDateStr(d) {
 }
 
 function pad(n) { return String(n).padStart(2,'0'); }
+
+
+// Navbar scroll effect
+window.addEventListener('scroll', () => {
+  const navbar = document.querySelector('.navbar');
+  if (navbar) {
+    navbar.classList.toggle('scrolled', window.scrollY > 20);
+  }
+});
