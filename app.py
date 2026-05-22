@@ -425,7 +425,7 @@ Rules:
             genai.configure(api_key=GEMINI_KEY)
 
             model = genai.GenerativeModel(
-                model_name="gemini-1.5-flash-latest",
+                model_name="gemini-1.5-pro",
                 system_instruction=system_prompt
             )
 
