@@ -425,7 +425,7 @@ User question: {user_message}"""
         # Call Gemini using direct HTTP request — no library needed
         reply = "AI unavailable."
         try:
-            gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_KEY}"
+            gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_KEY}"
 
             gemini_body = {
                 "contents": [
