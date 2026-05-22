@@ -375,13 +375,16 @@ def chatbot_message():
             (request.user_id,), fetchone=True
         )
 
-        # Get recent zakat history
-        zakat_history = db_query("""
-            SELECT calc_type, total_assets, zakat_amount, currency
-            FROM zakat_records
-            WHERE user_id=%s
-            ORDER BY calculated_at DESC LIMIT 3
-        """, (request.user_id,), fetchall=True)
+        zakat_history = []
+        try:
+            zakat_history = db_query("""
+                SELECT calc_type, total_assets, zakat_amount, currency
+                FROM zakat_records
+                WHERE user_id=%s
+                ORDER BY calculated_at DESC LIMIT 3
+            """, (request.user_id,), fetchall=True) or []
+        except Exception:
+            pass
 
         history_text = ""
         if zakat_history:
@@ -390,82 +393,83 @@ def chatbot_message():
                 for r in zakat_history
             ])
 
-        system_prompt = f"""You are Mufti AI, an Islamic finance expert in Al-Hidayah Ramadan app for Pakistani Muslims.
+        full_prompt = f"""You are Mufti AI, an Islamic finance expert in Al-Hidayah Ramadan app for Pakistani Muslims.
 
 You specialize in:
 - Zakat: 2.5% on wealth above Nisab
-- Ushr: 10% rain-fed crops, 5% irrigated crops
-- Fitrana: 1.75kg wheat per person (~PKR 490 per person)
+- Ushr: 10% rain-fed, 5% irrigated crops
+- Fitrana: 1.75kg wheat per person (~PKR 490)
 - Nisab 2025: Gold = ~PKR 1,920,000 | Silver = ~PKR 215,000
 
 User: {user['full_name'] if user else 'User'} from {user['city'] if user else 'Pakistan'}
 Recent calculations: {history_text if history_text else 'None'}
 
 Rules:
-1. When user describes finances, calculate Zakat step by step
-2. Show: total assets, deductions, nisab check, final zakat amount
-3. Use PKR as default currency
+1. Calculate Zakat step by step when user describes finances
+2. Show total assets, deductions, nisab check, final amount
+3. Use PKR by default
 4. Be friendly and Islamic in tone
 5. End with a short Hadith or Quran verse about charity
-6. Keep responses under 200 words
-7. For complex questions, recommend a local scholar"""
+6. Keep under 200 words
+
+User question: {user_message}"""
 
         GEMINI_KEY = os.getenv("GEMINI_API_KEY", "")
 
         if not GEMINI_KEY:
             return jsonify({
-                "reply": "⚠️ AI not configured. Add GEMINI_API_KEY in Vercel environment variables.",
+                "reply": "⚠️ GEMINI_API_KEY not found in environment variables.",
                 "session_id": session_id
             })
 
-        # Call Gemini API
+        # Call Gemini using direct HTTP request — no library needed
+        reply = "AI unavailable."
         try:
-            import google.generativeai as genai
+            gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_KEY}"
 
-            genai.configure(api_key=GEMINI_KEY)
+            gemini_body = {
+                "contents": [
+                    {
+                        "parts": [
+                            {"text": full_prompt}
+                        ]
+                    }
+                ],
+                "generationConfig": {
+                    "maxOutputTokens": 400,
+                    "temperature": 0.7
+                }
+            }
 
-            model = genai.GenerativeModel(
-                model_name="gemini-2.5-flash-preview-05-20",
-                system_instruction=system_prompt
+            gemini_response = requests.post(
+                gemini_url,
+                json=gemini_body,
+                headers={"Content-Type": "application/json"},
+                timeout=30
             )
 
-            # Build conversation history
-            chat_history = []
-            if session_id:
-                try:
-                    prev = db_query("""
-                        SELECT role, content FROM chatbot_messages
-                        WHERE session_id=%s
-                        ORDER BY sent_at
-                        LIMIT 20
-                    """, (session_id,), fetchall=True)
-                    if prev:
-                        for msg in prev:
-                            role = "user" if msg['role'] == "user" else "model"
-                            chat_history.append({
-                                "role": role,
-                                "parts": [msg['content']]
-                            })
-                except Exception:
-                    pass
+            result = gemini_response.json()
 
-            # Start chat with history
-            chat = model.start_chat(history=chat_history)
-
-            # Send message
-            response = chat.send_message(user_message)
-            reply = response.text
-
-        except Exception as ai_error:
-            error_msg = str(ai_error)
-            if "api_key" in error_msg.lower() or "invalid" in error_msg.lower():
-                reply = "❌ Gemini API key invalid. Check GEMINI_API_KEY in Vercel."
-            elif "quota" in error_msg.lower() or "limit" in error_msg.lower():
-                reply = "⏳ Free quota exceeded. Try again tomorrow or upgrade your Gemini plan."
-            elif "not found" in error_msg.lower():
-                reply = "⚠️ Gemini model not found. Contact support."
+            # Check for errors from Gemini
+            if "error" in result:
+                error_detail = result["error"].get("message", "Unknown error")
+                error_code   = result["error"].get("code", 0)
+                if error_code == 400:
+                    reply = f"❌ Bad request: {error_detail}"
+                elif error_code == 403:
+                    reply = "❌ API key invalid or Gemini API not enabled. Go to aistudio.google.com and make sure API is enabled."
+                elif error_code == 429:
+                    reply = "⏳ Too many requests. Wait 1 minute and try again."
+                else:
+                    reply = f"❌ Gemini error {error_code}: {error_detail}"
             else:
-                reply = f"⚠️ AI Error: {error_msg[:150]}"
+                # Extract text from response
+                reply = result["candidates"][0]["content"]["parts"][0]["text"]
+
+        except requests.exceptions.Timeout:
+            reply = "⏳ Request timed out. Please try again."
+        except Exception as req_err:
+            reply = f"Request error: {str(req_err)[:200]}"
 
         # Save to database
         try:
@@ -475,7 +479,6 @@ Rules:
                     "INSERT INTO chatbot_sessions (user_id, session_id) VALUES (%s,%s)",
                     (request.user_id, session_id), commit=True
                 )
-
             db_query(
                 "INSERT INTO chatbot_messages (session_id, role, content) VALUES (%s,'user',%s)",
                 (session_id, user_message), commit=True
@@ -495,9 +498,12 @@ Rules:
 
     except Exception as e:
         return jsonify({
-            "reply": f"Server error: {str(e)[:100]}",
+            "reply": f"Server error: {str(e)[:150]}",
             "session_id": None
         }), 200
+
+
+
 # ─── NOTIFICATIONS ───────────────────────────────────────────
 @app.route('/api/notifications', methods=['GET'])
 @require_auth
