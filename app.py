@@ -357,55 +357,127 @@ def zakat_history():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# ─── CHATBOT ────────────────────────────────────────────────
 @app.route('/api/chatbot/message', methods=['POST'])
 @require_auth
 def chatbot_message():
     try:
         d            = request.json or {}
-        user_message = d.get('message','')
+        user_message = d.get('message', '')
         session_id   = d.get('session_id')
 
+        if not user_message:
+            return jsonify({"reply": "Please type a message.", "session_id": session_id})
+
+        # Get user profile for context
         user = db_query(
             "SELECT full_name, city FROM users WHERE id=%s",
             (request.user_id,), fetchone=True
         )
 
-        system_prompt = f"""You are Mufti AI, an Islamic finance expert in Al-Hidayah Ramadan app.
-You specialize in Zakat, Ushr, Fitrana according to Hanafi fiqh (Pakistan).
-User: {user['full_name'] if user else 'User'} from {user['city'] if user else 'Pakistan'}.
-Current Nisab: ~PKR 1,920,000 (gold) or ~PKR 215,000 (silver). Rate: 2.5%.
-Be concise, friendly, and end with a Quranic reference when relevant.
-Keep responses under 150 words."""
+        # Get user's recent zakat calculations for context
+        zakat_history = db_query("""
+            SELECT calc_type, total_assets, zakat_amount, currency
+            FROM zakat_records
+            WHERE user_id=%s
+            ORDER BY calculated_at DESC LIMIT 3
+        """, (request.user_id,), fetchall=True)
 
-        reply = "I'm sorry, the AI service is currently unavailable. Basic rule: Zakat = 2.5% on net assets above Nisab (~₨1.92M gold standard)."
+        history_text = ""
+        if zakat_history:
+            history_text = "\n".join([
+                f"- {r['calc_type']}: {r['currency']} {r['zakat_amount']} (assets: {r['total_assets']})"
+                for r in zakat_history
+            ])
 
-        if CLAUDE_KEY and CLAUDE_KEY != "none":
+        system_prompt = f"""You are Mufti AI, an Islamic finance expert built into Al-Hidayah, a Ramadan Companion app for Pakistani Muslims.
+
+You specialize in:
+- Zakat (2.5% on wealth above Nisab)
+- Ushr (10% rain-fed, 5% irrigated agricultural produce)
+- Sadaqah al-Fitr / Fitrana (~1.75kg wheat per person)
+- Nisab thresholds (Gold: 87.48g = ~PKR 1,920,000 | Silver: 612.36g = ~PKR 215,000)
+- Islamic finance according to Hanafi fiqh (followed in Pakistan)
+
+User Profile:
+- Name: {user['full_name'] if user else 'User'}
+- City: {user['city'] if user else 'Pakistan'}
+- Recent Calculations: {history_text if history_text else 'None yet'}
+
+Your behavior:
+1. When user describes a financial scenario, calculate their exact Zakat obligation
+2. Show your calculation step by step (assets, deductions, nisab check, final amount)
+3. Use PKR as default currency for Pakistani users
+4. Be warm, Islamic in tone, use occasional Arabic phrases like "SubhanAllah", "Alhamdulillah"
+5. End responses with a relevant short Hadith or Quranic verse about charity
+6. Keep responses under 200 words unless doing detailed calculations
+7. For complex fiqh questions, recommend consulting a local scholar
+
+Current Nisab (2025):
+- Gold standard: ~PKR 1,920,000
+- Silver standard: ~PKR 215,000
+- Zakat rate: 2.5%"""
+
+        # Get conversation history from this session
+        messages = []
+        if session_id:
             try:
-                import anthropic
-                client = anthropic.Anthropic(api_key=CLAUDE_KEY)
-                response = client.messages.create(
-                    model="claude-haiku-4-5-20251001",
-                    max_tokens=300,
-                    system=system_prompt,
-                    messages=[{"role":"user","content":user_message}]
-                )
-                reply = response.content[0].text
-            except Exception as ai_err:
-                reply = f"AI unavailable. Basic answer: Zakat is 2.5% on zakatable assets above Nisab. Details: {str(ai_err)[:80]}"
+                prev = db_query("""
+                    SELECT role, content FROM chatbot_messages
+                    WHERE session_id=%s
+                    ORDER BY sent_at
+                    LIMIT 20
+                """, (session_id,), fetchall=True)
+                if prev:
+                    messages = [{"role": r['role'], "content": r['content']} for r in prev]
+            except Exception:
+                pass
 
-        # Save session
-        if not session_id:
-            session_id = str(uuid.uuid4())
-            try:
+        # Add current user message
+        messages.append({"role": "user", "content": user_message})
+
+        # Call Claude API
+        CLAUDE_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+
+        if not CLAUDE_KEY or CLAUDE_KEY in ["none", "None", "", "your-key-here"]:
+            return jsonify({
+                "reply": "⚠️ AI assistant not configured. Please add ANTHROPIC_API_KEY in Vercel environment variables. Basic rule: Zakat = 2.5% on net assets above Nisab (PKR 1.92M gold standard).",
+                "session_id": session_id
+            })
+
+        try:
+            import anthropic
+            client = anthropic.Anthropic(api_key=CLAUDE_KEY)
+
+            response = client.messages.create(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=400,
+                system=system_prompt,
+                messages=messages
+            )
+
+            reply = response.content[0].text
+
+        except Exception as ai_error:
+            error_msg = str(ai_error)
+            # Give helpful error based on type
+            if "auth" in error_msg.lower() or "api_key" in error_msg.lower() or "invalid" in error_msg.lower():
+                reply = "❌ Invalid API key. Please check your ANTHROPIC_API_KEY in Vercel settings."
+            elif "rate" in error_msg.lower():
+                reply = "⏳ Too many requests. Please wait a moment and try again."
+            elif "credit" in error_msg.lower() or "balance" in error_msg.lower():
+                reply = "💳 Anthropic account has no credits. Please add credits at console.anthropic.com"
+            else:
+                reply = f"⚠️ AI error: {error_msg[:120]}"
+
+        # Save session to database
+        try:
+            if not session_id:
+                session_id = str(uuid.uuid4())
                 db_query(
                     "INSERT INTO chatbot_sessions (user_id, session_id) VALUES (%s,%s)",
                     (request.user_id, session_id), commit=True
                 )
-            except Exception:
-                pass
 
-        try:
             db_query(
                 "INSERT INTO chatbot_messages (session_id, role, content) VALUES (%s,'user',%s)",
                 (session_id, user_message), commit=True
@@ -414,14 +486,20 @@ Keep responses under 150 words."""
                 "INSERT INTO chatbot_messages (session_id, role, content) VALUES (%s,'assistant',%s)",
                 (session_id, reply), commit=True
             )
+            db_query(
+                "UPDATE chatbot_sessions SET last_message_at=NOW() WHERE session_id=%s",
+                (session_id,), commit=True
+            )
         except Exception:
             pass
 
         return jsonify({"reply": reply, "session_id": session_id})
 
     except Exception as e:
-        return jsonify({"reply": f"Error: {str(e)}", "session_id": None}), 200
-
+        return jsonify({
+            "reply": f"Server error: {str(e)[:100]}",
+            "session_id": None
+        }), 200
 
 # ─── NOTIFICATIONS ───────────────────────────────────────────
 @app.route('/api/notifications', methods=['GET'])
