@@ -365,8 +365,8 @@ def chatbot_message():
         user_message = d.get('message', '')
         session_id   = d.get('session_id')
 
-        if not user_message:
-            return jsonify({"reply": "Please type a message.", "session_id": session_id})
+         not user_message:
+            return jsony({"reply": "Please type a message.", "session_id": session_id})
 
         # Get user profile for context
         user = db_query(
@@ -383,7 +383,7 @@ def chatbot_message():
         """, (request.user_id,), fetchall=True)
 
         history_text = ""
-        if zakat_history:
+         zakat_history:
             history_text = "\n".join([
                 f"- {r['calc_type']}: {r['currency']} {r['zakat_amount']} (assets: {r['total_assets']})"
                 for r in zakat_history
@@ -399,9 +399,9 @@ You specialize in:
 - Islamic finance according to Hanafi fiqh (followed in Pakistan)
 
 User Profile:
-- Name: {user['full_name'] if user else 'User'}
-- City: {user['city'] if user else 'Pakistan'}
-- Recent Calculations: {history_text if history_text else 'None yet'}
+- Name: {user['full_name']  user else 'User'}
+- City: {user['city']  user else 'Pakistan'}
+- Recent Calculations: {history_text  history_text else 'None yet'}
 
 Your behavior:
 1. When user describes a financial scenario, calculate their exact Zakat obligation
@@ -460,8 +460,8 @@ Current Nisab (2025):
         except Exception as ai_error:
             error_msg = str(ai_error)
             # Give helpful error based on type
-            if "auth" in error_msg.lower() or "api_key" in error_msg.lower() or "invalid" in error_msg.lower():
-                reply = "❌ Invalid API key. Please check your ANTHROPIC_API_KEY in Vercel settings."
+            except Exception as ai_error:
+            reply = f"EXACT ERROR: {str(ai_error)}"
             elif "rate" in error_msg.lower():
                 reply = "⏳ Too many requests. Please wait a moment and try again."
             elif "credit" in error_msg.lower() or "balance" in error_msg.lower():
