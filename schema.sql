@@ -1,7 +1,7 @@
  
 --  AL-HIDAYAH DATABASE SCHEMA
 --  Ramadan Companion Web Application
---  Name : Arif Ali (24P-0736) | Arslan Tariq (24P-0610)
+--  Name : Arif Ali (24P-0736) || Arslan Tariq (24P-0610)
  
 
 
