@@ -1,214 +1,350 @@
-# 🌙 Al-Hidayah — Ramadan Companion Web Application
+<div align="center">
 
-**Database Lab Project**
-- **Authors:** Arif Ali `24P-0736` | Arslan Tariq `24P-0610`
-- **Stack:** HTML · CSS · JavaScript · Python Flask · PostgreSQL
-- **APIs:** AlAdhan · Al-Quran Cloud · Anthropic Claude (Zakat AI)
+<br/>
+
+```
+ █████╗ ██╗         ██╗  ██╗██╗██████╗  █████╗ ██╗   ██╗ █████╗ ██╗  ██╗
+██╔══██╗██║         ██║  ██║██║██╔══██╗██╔══██╗╚██╗ ██╔╝██╔══██╗██║  ██║
+███████║██║         ███████║██║██║  ██║███████║ ╚████╔╝ ███████║███████║
+██╔══██║██║         ██╔══██║██║██║  ██║██╔══██║  ╚██╔╝  ██╔══██║██╔══██║
+██║  ██║███████╗    ██║  ██║██║██████╔╝██║  ██║   ██║   ██║  ██║██║  ██║
+╚═╝  ╚═╝╚══════╝    ╚═╝  ╚═╝╚═╝╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝
+```
+
+### 🌙 *Your Complete Ramadan Companion* 🌙
+
+<br/>
+
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![Flask](https://img.shields.io/badge/Flask-2.x-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://postgresql.org)
+[![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![Claude AI](https://img.shields.io/badge/Anthropic-Claude_AI-D97706?style=for-the-badge&logo=anthropic&logoColor=white)](https://anthropic.com)
+
+<br/>
+
+> *"Indeed, with hardship will be ease."* — Quran 94:6
+
+<br/>
+
+**Al-Hidayah** is a full-stack Ramadan companion web application that helps Muslims track prayers, read Quran, calculate Zakat, and stay spiritually connected throughout the blessed month — powered by real Islamic APIs and AI.
+
+<br/>
 
 ---
 
-## 📁 Project Structure
-```
+</div>
+
+## 👥 Authors
+
+<table align="center">
+  <tr>
+    <td align="center">
+      <b>Arif Ali</b><br/>
+      <code>24P-0736</code>
+    </td>
+    <td align="center">
+      <b>Arslan Tariq</b><br/>
+      <code>24P-0610</code>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center">
+      <i>FAST National University of Computing and Emerging Sciences</i><br/>
+      <b>Database Lab Project</b>
+    </td>
+  </tr>
+</table>
+
+---
+
+## ✨ Features at a Glance
+
+| Module | Feature | Powered By |
+|:------:|---------|-----------|
+| 🏠 | Live Sehri / Iftar countdown with animated hero | Vanilla JS |
+| 🕌 | Location-based prayer times + 30-day Ramadan tracker | AlAdhan API |
+| 📖 | Quran reader with audio recitation & ayah bookmarks | Al-Quran Cloud |
+| 🤲 | 10+ authentic duas with transliteration & translation | Static DB |
+| ⚖️ | Zakat, Ushr, Gold/Silver & Fitrana calculators | PostgreSQL |
+| 🤖 | Mufti AI — contextual Islamic chatbot | Anthropic Claude |
+| 🍽️ | 14 curated Sehri & Iftar recipes | In-App |
+| ▶️ | Categorized Islamic video library | In-App |
+| 🌓 | Dark / Light mode with persistent preference | localStorage + DB |
+
+---
+
+## 🏗️ Project Structure
+
 ```
 alhidayah/
-├── templates/
-│   └── index.html          ← Main HTML (all pages SPA)
-├── static/
+│
+├── 📂 templates/
+│   └── index.html              ← Single-Page Application (SPA) shell
+│
+├── 📂 static/
 │   ├── css/
-│   │   └── style.css       ← All styles (dark/light theme)
+│   │   └── style.css           ← Full dark/light theme system
 │   └── js/
-│       └── app.js          ← All JavaScript logic
-├── backend/
-│   └── app.py              ← Flask REST API
-├── database/
-│   └── schema.sql          ← PostgreSQL schema
+│       └── app.js              ← All client-side logic & API calls
+│
+├── 📂 backend/
+│   └── app.py                  ← Flask REST API (all endpoints)
+│
+├── 📂 database/
+│   └── schema.sql              ← PostgreSQL DDL (11 tables, views, triggers)
+│
 ├── requirements.txt
 └── README.md
+```
 
 ---
 
-## 🗄️ Database Setup (PostgreSQL)
+## 🗄️ Database Architecture
+
+> Demonstrating production-level PostgreSQL design patterns
+
+### 📋 Tables
+
+| Table | Purpose |
+|-------|---------|
+| `users` | Registered users with location, theme & settings |
+| `prayer_logs` | Daily prayer tracking per user |
+| `quran_progress` | Surah + last Ayah bookmark per user |
+| `fasting_log` | 30-day fasting history |
+| `zakat_records` | All Zakat / Ushr / Fitrana calculations |
+| `dua_favorites` | User-bookmarked duas |
+| `chatbot_sessions` | Mufti AI chat sessions |
+| `chatbot_messages` | Full AI conversation history |
+| `notification_schedule` | Per-prayer notification preferences |
+| `user_sessions` | JWT-based auth sessions |
+| `recipe_bookmarks` | Saved recipes per user |
+
+### 👁️ Views
+
+| View | Purpose |
+|------|---------|
+| `v_prayer_stats` | Prayer completion rates per user |
+| `v_quran_stats` | Quran reading summary & progress |
+| `v_fasting_stats` | Fasting overview across Ramadan |
+
+### 🎓 Database Concepts Demonstrated
+
+```
+✅  Normalization          11 tables with proper foreign key relationships
+✅  Triggers               Auto-create notification rows on signup; timestamp updates
+✅  Views                  Computed stats — v_prayer_stats, v_quran_stats, v_fasting_stats
+✅  PL/pgSQL Functions      Helper functions for complex queries
+✅  Indexes                 On frequently-queried columns for performance
+✅  Transactions            UPSERT patterns for prayer and Quran logs
+✅  Constraints             CHECK, UNIQUE, NOT NULL applied throughout
+✅  UUID Primary Keys       For users and sessions (collision-safe)
+✅  JSONB Support           Schema ready for flexible future extensions
+```
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Python 3.10+
+- PostgreSQL 15+
+- An [Anthropic API Key](https://console.anthropic.com/)
+
+---
+
+### 1️⃣ Database Setup
 
 ```bash
-# 1. Install PostgreSQL
+# Install PostgreSQL
 sudo apt install postgresql
 
-# 2. Login and run schema
+# Run the schema
 psql -U postgres -f database/schema.sql
 
-# 3. Verify tables
+# Verify tables were created
 psql -U postgres -d alhidayah_db -c "\dt"
 ```
 
-**Tables Created:**
-| Table | Purpose |
-|-------|---------|
-| `users` | Registered users with location, theme, settings |
-| `prayer_logs` | Daily prayer tracking per user |
-| `quran_progress` | Surah + last ayah bookmark per user |
-| `fasting_log` | 30-day fasting history |
-| `zakat_records` | All Zakat/Ushr/Fitrana calculations |
-| `dua_favorites` | User bookmarked duas |
-| `chatbot_sessions` | AI chat sessions |
-| `chatbot_messages` | Full AI conversation history |
-| `notification_schedule` | Per-prayer notification settings |
-| `user_sessions` | JWT auth sessions |
-| `recipe_bookmarks` | Saved recipes |
+---
 
-**Views:**
-- `v_prayer_stats` — prayer completion rates per user
-- `v_quran_stats` — Quran reading summary
-- `v_fasting_stats` — fasting overview
+### 2️⃣ Backend Setup
+
+```bash
+# Create and activate virtual environment
+python -m venv venv
+source venv/bin/activate          # Linux / macOS
+# venv\Scripts\activate           # Windows
+
+# Install all dependencies
+pip install -r requirements.txt
+```
 
 ---
 
-## 🐍 Backend Setup
+### 3️⃣ Environment Configuration
 
-bash
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate   # Linux/Mac
-venv\Scripts\activate      # Windows
+Create a `.env` file in the project root:
 
-# Install dependencies
-pip install -r requirements.txt
-
-# Create .env file
-echo "DB_NAME=alhidayah_db
+```env
+# ── Database ─────────────────────────────────
+DB_NAME=alhidayah_db
 DB_USER=postgres
 DB_PASS=your_password
 DB_HOST=localhost
 DB_PORT=5432
-JWT_SECRET=your_secret_key_here
-ANTHROPIC_API_KEY=sk-ant-your-key-here" > .env
 
-# Run Flask server
+# ── Security ─────────────────────────────────
+JWT_SECRET=your_secret_key_here
+
+# ── AI ───────────────────────────────────────
+ANTHROPIC_API_KEY=sk-ant-your-key-here
+```
+
+---
+
+### 4️⃣ Launch
+
+```bash
 cd backend
 python app.py
 ```
 
-Server starts at: `http://localhost:5000`
+> 🟢 Server running at **`http://localhost:5000`**
 
 ---
 
-## 🌐 REST API Endpoints
+## 🌐 REST API Reference
 
-### Auth
+### 🔐 Authentication
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/auth/register` | Register new user (with location) |
-| POST | `/api/auth/login` | Login, get JWT token |
-| GET  | `/api/auth/me` | Get current user profile |
+| `POST` | `/api/auth/register` | Register new user with location |
+| `POST` | `/api/auth/login` | Login and receive JWT token |
+| `GET` | `/api/auth/me` | Fetch current user profile |
 
-### Prayer
+### 🕌 Prayer
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET  | `/api/prayer/times` | Prayer times for user's location |
-| POST | `/api/prayer/log` | Mark a prayer as prayed |
-| GET  | `/api/prayer/log` | Get prayer history |
-| GET  | `/api/prayer/stats` | Prayer completion stats |
-
-### Qur'an
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET  | `/api/quran/progress` | Get all surah progress |
-| POST | `/api/quran/progress` | Update last read ayah |
-| GET  | `/api/quran/surah/<n>` | Fetch surah from Al-Quran Cloud |
-
-### Zakat
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/zakat/save` | Save a calculation |
-| GET  | `/api/zakat/history` | User's calculation history |
-
-### Chatbot (Mufti AI)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/chatbot/message` | Send message, get AI response |
-
-### Notifications & Settings
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET  | `/api/notifications` | Get notification preferences |
-| PUT  | `/api/notifications` | Update notification preferences |
-| PUT  | `/api/user/settings` | Update theme, city, etc. |
-
----
-
-## ✨ Features
-
-### 🏠 Home
-- Live countdown to Sehri/Iftar
-- Animated Islamic hero with stars
-- Quick navigation to all features
-
-### 🕌 Prayer Times
-- Location-based times via **AlAdhan API**
-- Sehri (Fajr) and Iftar (Maghrib) prominently displayed
-- Mark each prayer individually ✅
-- 30-day Ramadan tracker — synced to DB
-- Browser notifications 10 min before each prayer
+| `GET` | `/api/prayer/times` | Location-based prayer times |
+| `POST` | `/api/prayer/log` | Mark a prayer as completed |
+| `GET` | `/api/prayer/log` | Full prayer history |
+| `GET` | `/api/prayer/stats` | Completion statistics |
 
 ### 📖 Qur'an
-- 20+ Surahs with Arabic text + English translation
-- **Audio recitation** via Islamic.Network CDN
-- Reciter selector (Alafasy, Sudais, Husary, Minshawi)
-- **Reading bookmark** — saves exactly which Ayah you stopped at
-- Resumes from same Ayah next visit
-- 30-Juz progress tracker
 
-### 🤲 Duas
-- 10+ authentic Duas with Arabic, transliteration, translation
-- Categories: Sehri, Iftar, Morning, Evening, Forgiveness, Taraweeh
-- Copy to clipboard button
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/quran/progress` | Get all Surah progress |
+| `POST` | `/api/quran/progress` | Update last read Ayah bookmark |
+| `GET` | `/api/quran/surah/<n>` | Fetch Surah from Al-Quran Cloud |
 
-### ⚖️ Zakat & Ushr
-- 4 calculators: Wealth, Gold/Silver, Ushr (Agricultural), Fitrana
-- All calculations saved to PostgreSQL
-- **Mufti AI chatbot** powered by Claude (Anthropic)
-- AI has context of user's profile and past calculations
+### ⚖️ Zakat
 
-### 🍽️ Recipes
-- 14 Sehri & Iftar recipes with categories
-- Dark gradient food images
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/zakat/save` | Save a Zakat calculation |
+| `GET` | `/api/zakat/history` | User's full calculation history |
 
-### ▶️ Videos
-- 12 Islamic video cards organized by category
-- Lecture, Qur'an, Duas, Taraweeh
+### 🤖 Mufti AI Chatbot
 
-### 🌓 Dark / Light Mode
-- Teal/Jade dark theme and light theme
-- Preference saved to localStorage and DB
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/chatbot/message` | Send message → receive AI response |
+
+### ⚙️ Notifications & Settings
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/notifications` | Fetch notification preferences |
+| `PUT` | `/api/notifications` | Update notification settings |
+| `PUT` | `/api/user/settings` | Update theme, city & other prefs |
 
 ---
 
-## 🎓 Database Lab Concepts Demonstrated
+## 📖 Feature Deep-Dive
 
-1. **Normalization** — 11 tables, proper foreign keys
-2. **Triggers** — auto-create notification rows on user signup, auto-update timestamps
-3. **Views** — computed stats views (`v_prayer_stats`, `v_quran_stats`)
-4. **Functions** — PL/pgSQL helper functions
-5. **Indexes** — on frequently queried columns
-6. **Transactions** — UPSERT patterns for prayer/quran logs
-7. **Constraints** — CHECK, UNIQUE, NOT NULL throughout
-8. **UUID primary keys** — for users and sessions
-9. **JSONB-ready** — extendable for future schema
+<details>
+<summary><b>🕌 Prayer Times & Tracker</b></summary>
+<br/>
+
+- Pulls real-time prayer times from the **AlAdhan API** based on the user's saved city
+- Sehri (Fajr) and Iftar (Maghrib) times are displayed prominently on the home screen
+- Users can **mark each of the 5 prayers** individually as completed
+- A full **30-day Ramadan tracker** syncs every log to PostgreSQL
+- **Browser push notifications** fire 10 minutes before each prayer
+
+</details>
+
+<details>
+<summary><b>📖 Qur'an Reader</b></summary>
+<br/>
+
+- 20+ Surahs with full **Arabic text and English translation**
+- **Audio recitation** streamed from the Islamic Network CDN
+- Choose from 4 reciters: Alafasy · Sudais · Husary · Minshawi
+- **Ayah-level bookmarking** — saves the exact verse you stopped at and resumes automatically on next visit
+- Visual **30-Juz progress tracker**
+
+</details>
+
+<details>
+<summary><b>⚖️ Zakat Calculator + Mufti AI</b></summary>
+<br/>
+
+- **4 calculators:** Wealth Zakat, Gold & Silver, Ushr (Agricultural), Fitrana
+- All calculations are stored in PostgreSQL with timestamps
+- **Mufti AI** — an Islamic chatbot built on Anthropic Claude with full context of the user's profile and past Zakat history
+
+</details>
 
 ---
 
-## 🧪 Demo Login
+## 🎨 Design System
+
+| Token | Value |
+|-------|-------|
+| Primary | `#0D7377` — Deep Teal |
+| Secondary | `#1A6B4A` — Jade Green |
+| Background (Light) | Warm Cream |
+| Background (Dark) | Deep Charcoal |
+| Inspiration | Classic Islamic geometric tile patterns |
+
+---
+
+## 🧪 Demo Account
+
 ```
-Email:    demo@alhidayah.app
-Password: demo1234
+Email     →   demo@alhidayah.app
+Password  →   demo1234
 ```
 
 ---
 
-## 📸 Color Theme
+## 🔌 External APIs Used
 
-Deep Teal (`#0D7377`) + Jade (`#1A6B4A`) + Warm Cream backgrounds.
-Inspired by classic Islamic geometric tile patterns.
+| API | Purpose |
+|-----|---------|
+| [AlAdhan](https://aladhan.com/prayer-times-api) | Prayer times by location |
+| [Al-Quran Cloud](https://alquran.cloud/api) | Quran text & audio |
+| [Islamic.Network CDN](https://cdn.islamic.network) | Audio recitation files |
+| [Anthropic Claude](https://docs.anthropic.com) | Mufti AI chatbot |
 
 ---
 
-*Ramadan Mubarak! 🌙*
+<div align="center">
+
+<br/>
+
+**رَمَضَانُ مُبَارَك**
+
+*Ramadan Mubarak — May this project be a source of benefit* 🌙
+
+<br/>
+
+Made with 🤍 by **Arif Ali** & **Arslan Tariq** · FAST NUCES
+
+</div>
