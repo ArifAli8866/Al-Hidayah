@@ -13,8 +13,17 @@
 
 ### 🌙 *Your Complete Ramadan Companion* 🌙
 
+
+
 <br/>
 
+## 🔗 Project Links
+
+- 📂 GitHub Repository: [Al-Hidayah](https://github.com/ArifAli8866/Al-Hidayah)  
+- 🌍 Live Demo: [https://al-hidayah-sand.vercel.app/](https://al-hidayah-sand.vercel.app/)
+
+
+<br/>
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Flask](https://img.shields.io/badge/Flask-2.x-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://postgresql.org)
