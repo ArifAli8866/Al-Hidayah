@@ -1,5 +1,7 @@
 # ============================================================
 #  AL-HIDAYAH — Flask Backend (Vercel Compatible)
+#  Fixed: chatbot sessions, zakat save columns, added fasting
+#  and tasbih endpoints.
 # ============================================================
 
 from flask import Flask, request, jsonify, send_from_directory
@@ -21,7 +23,7 @@ CORS(app, supports_credentials=True)
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 JWT_SECRET   = os.getenv("JWT_SECRET",   "alhidayah2025")
 JWT_EXPIRY   = 86400
-GEMINI_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_KEY   = os.getenv("GEMINI_API_KEY", "")
 
 # ─── DB HELPERS ─────────────────────────────────────────────
 def get_db():
@@ -36,6 +38,7 @@ def get_db():
         connect_timeout=10
     )
     return conn
+
 def db_query(sql, params=(), fetchone=False, fetchall=False, commit=False):
     conn = get_db()
     cur  = conn.cursor()
@@ -44,7 +47,11 @@ def db_query(sql, params=(), fetchone=False, fetchall=False, commit=False):
         result = None
         if fetchone:  result = cur.fetchone()
         if fetchall:  result = cur.fetchall()
-        if commit:    conn.commit()
+        if commit:
+            conn.commit()
+            # Return last inserted row id if available
+            if cur.description:
+                result = cur.fetchone()
         return result
     except Exception as e:
         conn.rollback()
@@ -212,7 +219,7 @@ def get_prayer_times():
             "Dhuhr":"12:23","Asr":"15:52",
             "Maghrib":"18:25","Isha":"19:49"
         },
-        "hijri": {"day":"14","month":{"en":"Ramadan"},"year":"1446"},
+        "hijri": {"day":"14","month":{"en":"Ramadan"},"year":"1447"},
         "city":  "Default"
     })
 
@@ -264,7 +271,7 @@ def get_quran_progress():
     try:
         rows = db_query("""
             SELECT surah_number, last_ayah, is_completed, last_read_at
-            FROM quran_progress WHERE user_id=%s ORDER BY surah_number
+            FROM quran_progress WHERE user_id=%s ORDER BY last_read_at DESC
         """, (request.user_id,), fetchall=True)
         return jsonify([dict(r) for r in (rows or [])])
     except Exception as e:
@@ -327,16 +334,26 @@ def save_zakat():
             VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
         """, (
             request.user_id, d.get('calc_type','wealth'),
-            d.get('cash',0), d.get('investments',0),
-            d.get('business_goods',0), d.get('receivables',0),
-            d.get('debts',0), d.get('gold_grams',0),
-            d.get('silver_grams',0), d.get('gold_price',0),
-            d.get('silver_price',0), d.get('produce_kg',0),
-            d.get('irrigation_type'), d.get('price_per_kg',0),
-            d.get('family_members',1), d.get('food_type'),
-            d.get('currency','PKR'), d.get('total_assets',0),
-            d.get('net_zakatable',0), d.get('zakat_amount',0),
-            d.get('nisab_met',False), d.get('notes','')
+            d.get('cash_amount', d.get('cash',0)),
+            d.get('investments',0),
+            d.get('business_goods',0),
+            d.get('receivables',0),
+            d.get('debts',0),
+            d.get('gold_grams',0),
+            d.get('silver_grams',0),
+            d.get('gold_price_per_gram', d.get('gold_price',0)),
+            d.get('silver_price_per_gram', d.get('silver_price',0)),
+            d.get('produce_kg',0),
+            d.get('irrigation_type'),
+            d.get('price_per_kg',0),
+            d.get('family_members',1),
+            d.get('food_type'),
+            d.get('currency','PKR'),
+            d.get('total_assets',0),
+            d.get('net_zakatable',0),
+            d.get('zakat_amount',0),
+            d.get('nisab_met',False),
+            d.get('notes','')
         ), commit=True)
         return jsonify({"success": True})
     except Exception as e:
@@ -357,6 +374,87 @@ def zakat_history():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# ─── FASTING LOG ROUTES (NEW) ───────────────────────────────
+@app.route('/api/fasting/log', methods=['GET'])
+@require_auth
+def get_fasting_log():
+    try:
+        rows = db_query("""
+            SELECT fast_date, ramadan_day, fasted, sehri_eaten, iftar_time, notes
+            FROM fasting_log
+            WHERE user_id=%s
+            ORDER BY fast_date
+        """, (request.user_id,), fetchall=True)
+        return jsonify([dict(r) for r in (rows or [])])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/fasting/log', methods=['POST'])
+@require_auth
+def log_fasting():
+    try:
+        d = request.json
+        db_query("""
+            INSERT INTO fasting_log
+              (user_id, fast_date, ramadan_day, fasted, sehri_eaten, notes)
+            VALUES (%s,%s,%s,%s,%s,%s)
+            ON CONFLICT (user_id, fast_date)
+            DO UPDATE SET fasted=EXCLUDED.fasted,
+                          sehri_eaten=EXCLUDED.sehri_eaten,
+                          notes=EXCLUDED.notes
+        """, (
+            request.user_id,
+            d.get('fast_date'),
+            d.get('ramadan_day'),
+            d.get('fasted', True),
+            d.get('sehri_eaten', True),
+            d.get('notes', '')
+        ), commit=True)
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# ─── TASBIH ROUTES (NEW) ────────────────────────────────────
+@app.route('/api/tasbih/save', methods=['POST'])
+@require_auth
+def save_tasbih():
+    try:
+        d = request.json
+        db_query("""
+            INSERT INTO tasbih_log
+              (user_id, dhikr_type, dhikr_ar, count, target, logged_at)
+            VALUES (%s,%s,%s,%s,%s,CURRENT_DATE)
+            ON CONFLICT (user_id, dhikr_type, logged_at)
+            DO UPDATE SET count=EXCLUDED.count,
+                          target=EXCLUDED.target
+        """, (
+            request.user_id,
+            d.get('dhikr_type','SubhanAllah'),
+            d.get('dhikr_ar',''),
+            d.get('count', 0),
+            d.get('target', 33)
+        ), commit=True)
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/tasbih/history', methods=['GET'])
+@require_auth
+def get_tasbih_history():
+    try:
+        rows = db_query("""
+            SELECT dhikr_type, dhikr_ar, count, target, logged_at
+            FROM tasbih_log
+            WHERE user_id=%s
+            ORDER BY logged_at DESC LIMIT 30
+        """, (request.user_id,), fetchall=True)
+        return jsonify([dict(r) for r in (rows or [])])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# ─── CHATBOT ────────────────────────────────────────────────
 @app.route('/api/chatbot/message', methods=['POST'])
 @require_auth
 def chatbot_message():
@@ -375,9 +473,9 @@ def chatbot_message():
             (request.user_id,), fetchone=True
         )
 
-        zakat_history = []
+        zakat_hist = []
         try:
-            zakat_history = db_query("""
+            zakat_hist = db_query("""
                 SELECT calc_type, total_assets, zakat_amount, currency
                 FROM zakat_records
                 WHERE user_id=%s
@@ -387,10 +485,10 @@ def chatbot_message():
             pass
 
         history_text = ""
-        if zakat_history:
+        if zakat_hist:
             history_text = "\n".join([
                 f"- {r['calc_type']}: {r['currency']} {r['zakat_amount']}"
-                for r in zakat_history
+                for r in zakat_hist
             ])
 
         full_prompt = f"""You are Mufti AI, an Islamic finance expert in Al-Hidayah Ramadan app for Pakistani Muslims.
@@ -414,18 +512,17 @@ Rules:
 
 User question: {user_message}"""
 
-        GEMINI_KEY = os.getenv("GEMINI_API_KEY", "")
+        gemini_key = os.getenv("GEMINI_API_KEY", "")
 
-        if not GEMINI_KEY:
+        if not gemini_key:
             return jsonify({
                 "reply": "⚠️ GEMINI_API_KEY not found in environment variables.",
                 "session_id": session_id
             })
 
-        # Call Gemini using direct HTTP request — no library needed
         reply = "AI unavailable."
         try:
-            gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_KEY}"
+            gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}"
 
             gemini_body = {
                 "contents": [
@@ -450,20 +547,18 @@ User question: {user_message}"""
 
             result = gemini_response.json()
 
-            # Check for errors from Gemini
             if "error" in result:
                 error_detail = result["error"].get("message", "Unknown error")
                 error_code   = result["error"].get("code", 0)
                 if error_code == 400:
                     reply = f"❌ Bad request: {error_detail}"
                 elif error_code == 403:
-                    reply = "❌ API key invalid or Gemini API not enabled. Go to aistudio.google.com and make sure API is enabled."
+                    reply = "❌ API key invalid or Gemini API not enabled."
                 elif error_code == 429:
                     reply = "⏳ Too many requests. Wait 1 minute and try again."
                 else:
                     reply = f"❌ Gemini error {error_code}: {error_detail}"
             else:
-                # Extract text from response
                 reply = result["candidates"][0]["content"]["parts"][0]["text"]
 
         except requests.exceptions.Timeout:
@@ -471,13 +566,13 @@ User question: {user_message}"""
         except Exception as req_err:
             reply = f"Request error: {str(req_err)[:200]}"
 
-        # Save to database
+        # Save to database — fixed: use session_id UUID column
         try:
             if not session_id:
                 session_id = str(uuid.uuid4())
                 db_query(
-                    "INSERT INTO chatbot_sessions (user_id, session_id) VALUES (%s,%s)",
-                    (request.user_id, session_id), commit=True
+                    "INSERT INTO chatbot_sessions (session_id, user_id) VALUES (%s,%s)",
+                    (session_id, request.user_id), commit=True
                 )
             db_query(
                 "INSERT INTO chatbot_messages (session_id, role, content) VALUES (%s,'user',%s)",
@@ -501,7 +596,6 @@ User question: {user_message}"""
             "reply": f"Server error: {str(e)[:150]}",
             "session_id": None
         }), 200
-
 
 
 # ─── NOTIFICATIONS ───────────────────────────────────────────
@@ -562,7 +656,11 @@ def update_settings():
 # ─── HEALTH CHECK ────────────────────────────────────────────
 @app.route('/api/health', methods=['GET'])
 def health():
-    return jsonify({"status": "ok", "app": "Al-Hidayah"})
+    try:
+        db_query("SELECT 1", fetchone=True)
+        return jsonify({"status": "ok", "app": "Al-Hidayah", "db": "connected"})
+    except Exception as e:
+        return jsonify({"status": "degraded", "app": "Al-Hidayah", "db_error": str(e)}), 500
 
 
 # ─── ERROR HANDLERS ──────────────────────────────────────────
