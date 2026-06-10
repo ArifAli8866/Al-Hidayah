@@ -283,6 +283,73 @@
             </div>
           </div>
         </div>
+
+        <!-- Prayer Stats Section -->
+        <div id="prayerStatsSection"></div>
+
+        <!-- Way of Nimaz (Interactive Guide) -->
+        <div class="card card-teal mt-3" id="nimazGuideContainer">
+          <div class="flex items-center justify-between mb-2" style="flex-wrap:wrap;gap:1rem;">
+            <h3 class="fw-display" style="color:var(--teal-light);font-size:0.9rem;letter-spacing:1px;">🙏 HOW TO PRAY
+              (WAY OF NIMAZ)</h3>
+            <span class="badge badge-jade">Interactive Guide</span>
+          </div>
+          <p style="font-size:0.8rem;color:var(--text-3);line-height:1.6;margin-bottom:1.5rem;">
+            Follow this step-by-step guide to perform your prayers correctly.
+          </p>
+
+          <div class="nimaz-viewer">
+            <div class="nimaz-tabs" id="nimazTabs">
+              <!-- JS will populate tabs -->
+            </div>
+            <div class="nimaz-content-box pt-3 pb-3" id="nimazContentBox">
+              <div id="nimazImgWrap"
+                style="text-align:center; font-size:4rem; margin-bottom:1rem; transition: transform 0.3s;">🧍‍♂️</div>
+              <h4 id="nimazStepTitle" class="fw-display"
+                style="color:var(--teal-light);font-size:1.4rem;text-align:center;margin-bottom:.5rem;">1. Takbeer</h4>
+              <div id="nimazAr" class="fw-arabic"
+                style="font-size:2rem;color:var(--t1);text-align:center;margin-bottom:.5rem;">الله أكبر</div>
+              <div id="nimazTr" style="font-size:.9rem;color:var(--t2);text-align:center;margin-bottom:.5rem;">Allahu
+                Akbar</div>
+              <div id="nimazEn" style="font-size:.85rem;color:var(--t3);text-align:center;margin-bottom:1rem;">Allah is
+                the greatest</div>
+              <div id="nimazDesc"
+                style="font-size:.85rem;color:var(--text-2);text-align:center;max-width:400px;margin:0 auto;line-height:1.6;">
+                Raise your hands to your earlobes and say the Takbeer. This signifies the beginning of the prayer.
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:1rem;">
+              <button class="btn btn-outline btn-sm" onclick="prevNimaz()">◀ Previous</button>
+              <button class="btn btn-outline btn-sm" onclick="nextNimaz()">Next ▶</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fasting Tracker (NEW) -->
+        <div class="card card-teal mt-3">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="fw-display" style="color:var(--teal-light);font-size:0.9rem;letter-spacing:1px;">🌙 RAMADAN
+              FASTING TRACKER — 30 DAYS</h3>
+            <span class="badge badge-teal" id="fastingBadge">0 / 30 Days</span>
+          </div>
+          <div class="prog-bar mb-2">
+            <div class="prog-fill" id="fastingBar" style="width:0%"></div>
+          </div>
+          <div class="tracker-grid" id="fastingTracker"></div>
+          <p style="font-size:0.72rem;color:var(--text-3);margin-top:6px;">Click each box to mark a fasting day. Days
+            turn green when fasted. Synced to your account.</p>
+          <div style="display:flex;gap:1rem;margin-top:0.8rem;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:5px;font-size:0.74rem;color:var(--text-3);">
+              <div style="width:12px;height:12px;background:var(--teal);border-radius:2px;"></div>Fasted
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:0.74rem;color:var(--text-3);">
+              <div style="width:12px;height:12px;background:var(--border);border-radius:2px;"></div>Not Marked
+            </div>
+          </div>
+          <button class="btn btn-outline" style="width:100%;margin-top:1rem;justify-content:center;"
+            onclick="openTasbih()">📿 Open Tasbih Counter</button>
+        </div>
+
       </div>
     </section>
 
@@ -296,6 +363,20 @@
           <h1>Holy Qur'an</h1>
           <div class="divider"></div>
           <p>Browse Surahs with Arabic text, translations, audio recitation &amp; reading tracker</p>
+        </div>
+
+        <!-- Continue Reading Banner -->
+        <div id="quranContinueBanner" class="hidden mb-3"
+          style="background:linear-gradient(135deg, rgba(20,189,189,0.15), rgba(26,107,74,0.15)); border:1px solid var(--teal); border-radius:var(--radius); padding:1.2rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+          <div>
+            <div
+              style="font-size:0.75rem;color:var(--text-3);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:3px;">
+              Continue from last read</div>
+            <div id="qContinueText"
+              style="font-family:var(--font-display);font-size:1.2rem;color:var(--teal-light);font-weight:700;">
+              Loading...</div>
+          </div>
+          <button class="btn btn-primary" onclick="resumeQuran()">📖 Continue Reading</button>
         </div>
 
         <!-- Progress -->
@@ -314,7 +395,7 @@
         </div>
 
         <!-- Search -->
-        <div style="display:flex;gap:0.8rem;margin-bottom:1.5rem;flex-wrap:wrap;" id="surahListWrap">
+        <div style="display:flex;gap:0.8rem;margin-bottom:1.5rem;flex-wrap:wrap;" id="surahSearchWrap">
           <input class="input" type="text" id="surahSearch" placeholder="🔍  Search Surah by name or number..."
             oninput="filterSurahs()" style="flex:1;min-width:200px;">
           <button class="btn btn-outline" onclick="renderSurahList()">↺ Reset</button>
@@ -756,6 +837,67 @@
     </div>
   </div>
 
+  <!-- Recipe Detail Modal (referenced in JS but was missing from HTML) -->
+  <div class="modal-bg" id="recipeModal">
+    <div class="modal" style="max-width:600px;">
+      <button class="modal-close" onclick="closeModal('recipeModal')">✕</button>
+      <div id="recipeModalContent"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+     TASBIH / DHIKR COUNTER MODAL (NEW)
+══════════════════════════════════════════ -->
+  <div class="modal-bg" id="tasbihModal">
+    <div class="modal" style="max-width:480px;">
+      <button class="modal-close" onclick="closeTasbih()">✕</button>
+      <div class="modal-title" style="text-align:center;">📿 Tasbih Counter</div>
+
+      <!-- Dhikr pill selector -->
+      <div style="display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-bottom:1.5rem;">
+        <button class="pill dhikr-pill active" onclick="selectDhikr(0)">SubhanAllah</button>
+        <button class="pill dhikr-pill" onclick="selectDhikr(1)">Alhamdulillah</button>
+        <button class="pill dhikr-pill" onclick="selectDhikr(2)">AllahuAkbar</button>
+        <button class="pill dhikr-pill" onclick="selectDhikr(3)">Astaghfirullah</button>
+        <button class="pill dhikr-pill" onclick="selectDhikr(4)">La Ilaha Illallah</button>
+      </div>
+
+      <!-- Arabic & translation -->
+      <div id="tasbihArEl" class="fw-arabic"
+        style="font-size:2.2rem;text-align:center;color:var(--teal-light);margin-bottom:0.3rem;">سُبْحَانَ اللَّهِ</div>
+      <div id="tasbihEnEl" style="font-size:0.85rem;text-align:center;color:var(--text-3);margin-bottom:1.5rem;">Glory
+        be to Allah</div>
+
+      <!-- Circular counter -->
+      <div style="position:relative;width:180px;height:180px;margin:0 auto 1.5rem;" id="tasbihArc" style="--pct:0%">
+        <svg width="180" height="180" style="position:absolute;top:0;left:0;transform:rotate(-90deg);">
+          <circle cx="90" cy="90" r="80" fill="none" stroke="var(--border)" stroke-width="12" />
+          <circle id="tasbihCircle" cx="90" cy="90" r="80" fill="none" stroke="var(--teal)" stroke-width="12"
+            stroke-dasharray="502.4" stroke-dashoffset="502.4" style="transition:stroke-dashoffset 0.3s;" />
+        </svg>
+        <!-- Tap button -->
+        <button onclick="tapTasbih()" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+          width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,var(--teal-dark),var(--jade-dark));
+          border:2px solid var(--teal);color:white;cursor:pointer;transition:all .15s;
+          display:flex;flex-direction:column;align-items:center;justify-content:center;
+          box-shadow:0 0 20px rgba(20,189,189,0.3);"
+          onmousedown="this.style.transform='translate(-50%,-50%) scale(0.93)'"
+          onmouseup="this.style.transform='translate(-50%,-50%) scale(1)'">
+          <div id="tasbihCountEl"
+            style="font-family:var(--font-display);font-size:2.4rem;font-weight:700;line-height:1;">0</div>
+          <div
+            style="font-size:0.6rem;letter-spacing:2px;color:rgba(255,255,255,0.6);text-transform:uppercase;margin-top:3px;">
+            TAP</div>
+        </button>
+      </div>
+
+      <div style="display:flex;gap:0.8rem;justify-content:center;">
+        <button class="btn btn-outline" onclick="resetTasbih()">↺ Reset</button>
+        <button class="btn btn-primary" onclick="closeTasbih()">✓ Done &amp; Save</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ══════════════════════════════════════════
      TOAST
 ══════════════════════════════════════════ -->
@@ -764,7 +906,6 @@
     <span class="toast-msg" id="toastMsg">Done!</span>
   </div>
 
-  <!-- Profile modal auto-fill -->
   <script>
     document.getElementById('profileModal')?.addEventListener('transitionend', () => {
       if (USER) {
@@ -773,6 +914,18 @@
         document.getElementById('pm-city').textContent = '📍 ' + (USER.city || '—');
       }
     });
+
+    // Wire up Tasbih arc circle based on CSS var
+    const tasbihObs = new MutationObserver(() => {
+      const arc = document.getElementById('tasbihArc');
+      const circle = document.getElementById('tasbihCircle');
+      if (arc && circle) {
+        const pct = parseFloat(getComputedStyle(arc).getPropertyValue('--pct') || '0') / 100;
+        circle.style.strokeDashoffset = 502.4 * (1 - pct);
+      }
+    });
+    const arcEl = document.getElementById('tasbihArc');
+    if (arcEl) tasbihObs.observe(arcEl, { attributes: true, attributeFilter: ['style'] });
   </script>
 
   <script src="app.js"></script>
@@ -819,7 +972,43 @@
       font-weight: 600;
       font-size: 0.87rem;
       color: var(--text-1);
-    }
+    }<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Al-Hidayah — Ramadan Companion</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- ══════════════════════════════════════════
+     LOADER
+══════════════════════════════════════════ -->
+  <div class="loader" id="loader">
+    <div class="loader-moon">🌙</div>
+    <div class="loader-title">AL-HIDAYAH</div>
+    <div class="loader-dots"><span></span><span></span><span></span></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+     NAVBAR
+══════════════════════════════════════════ -->
+  <nav class="navbar">
+    <div class="nav-brand" onclick="showSection('home')">
+      <div class="nav-brand-icon">🌙</div>
+      <div>
+        <div class="nav-brand-name">Al-Hidayah</div>
+        <div class="nav-brand-sub">Ramadan Companion</div>
+      </div>
+    </div>
+
+    <ul class="nav-links" id="navLinks">
+      <li><a onclick="showSection('home')" class="active" id="nav-home"> <span class="ni">🏠</span>Home</a></li>
+      <li><a onclick="showSection('prayer')" id="nav-prayer"> <span class="ni">🕌</span>Prayer</a></li>
+
 
     .sa {
       font-family: var(--font-arabic);
